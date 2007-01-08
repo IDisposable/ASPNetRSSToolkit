@@ -51,9 +51,20 @@ namespace RssToolkit {
         }
          
         public IEnumerable SelectItems(int maxItems) {
+            return SelectItems(maxItems, false);
+        }
+         
+        public IEnumerable SelectItems(int maxItems, bool reverseOrder) {
             ArrayList data = new ArrayList();
 
-            foreach (GenericRssElement element in Items) {
+            List<GenericRssElement> itemsList = Items;
+
+            if (reverseOrder) {
+                itemsList = new List<GenericRssElement>(itemsList);
+                itemsList.Reverse();
+            }
+
+            foreach (GenericRssElement element in itemsList) {
                 if (maxItems > 0 && data.Count >= maxItems) {
                     break;
                 }

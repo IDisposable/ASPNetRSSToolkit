@@ -26,6 +26,7 @@ namespace RssToolkit {
     [DefaultProperty("Url")]
     public class RssDataSource : DataSourceControl {
         int _maxItems;
+        bool _reverseItemsOrder;
         string _url;
         RssDataSourceView _itemsView;
         GenericRssChannel _channel;
@@ -61,6 +62,11 @@ namespace RssToolkit {
             set { _maxItems = value; }
         }
 
+        public bool ReverseItemsOrder {
+            get { return _reverseItemsOrder; }
+            set { _reverseItemsOrder = value; }
+        }
+
         public string Url {
             get { return _url; }
 
@@ -83,7 +89,7 @@ namespace RssToolkit {
         }
 
         protected override IEnumerable ExecuteSelect(DataSourceSelectArguments arguments) {
-            return _owner.Channel.SelectItems(_owner.MaxItems);
+            return _owner.Channel.SelectItems(_owner.MaxItems, _owner.ReverseItemsOrder);
         }
     }
 
