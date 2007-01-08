@@ -21,6 +21,12 @@ namespace RssToolkit {
 
         // helper to generate link [to the .ashx] containing channel name and (encoded) userName
         public static string GenerateChannelLink(string handlerPath, string channelName, string userName) {
+            int iqs = handlerPath.IndexOf('?');
+
+            if (iqs >= 0) {
+                handlerPath = handlerPath.Substring(0, iqs);
+            }
+
             string link = VirtualPathUtility.ToAbsolute(handlerPath);
 
             if (string.IsNullOrEmpty(userName)) {
