@@ -26,6 +26,9 @@ namespace RssToolkit {
         }
 
         protected void LoadFromUrl(string url) {
+            // resolve app-relative URLs
+            url = RssXmlHelper.ResolveAppRelativeLinkToUrl(url);
+
             // download the feed
             RssChannelDom dom = RssDownloadManager.GetChannel(url);
 

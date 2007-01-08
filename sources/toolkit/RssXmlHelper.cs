@@ -125,7 +125,7 @@ namespace RssToolkit {
             return false;
         }
 
-        static string ResolveAppRelativeLinkToUrl(string link) {
+        internal static string ResolveAppRelativeLinkToUrl(string link) {
             if (!string.IsNullOrEmpty(link) && link.StartsWith("~/")) {
                 HttpContext context = HttpContext.Current;
 
