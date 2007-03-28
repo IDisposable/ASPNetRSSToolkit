@@ -19,8 +19,12 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "RssToolkitUnitTest", "RssTo
 		Release.AspNetCompiler.Debug = "False"
 	EndProjectSection
 EndProject
-Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "C:\...\RssToolkitSampleWebApplication\", "RssToolkitSampleWebApplication\", "{27366DFD-A28E-44B0-BEEB-0028C9AD88A5}"
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "C:\...\RssToolkitSampleWebApplication\", "RssToolkitSampleWebApplication", "{27366DFD-A28E-44B0-BEEB-0028C9AD88A5}"
 	ProjectSection(WebsiteProperties) = preProject
+		SccProjectName = "SAK"
+		SccAuxPath = "SAK"
+		SccLocalPath = "SAK"
+		SccProvider = "SAK"
 		ProjectReferences = "{D20EF1B8-0AA6-44D4-9DCB-8C5C406AAD2D}|FeedsToolkit.dll;"
 		Debug.AspNetCompiler.VirtualPath = "/RssToolkitSampleWebApplication"
 		Debug.AspNetCompiler.PhysicalPath = "RssToolkitSampleWebApplication\"
@@ -41,6 +45,26 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "C:\...\RssToolkitSampleWebA
 	EndProjectSection
 EndProject
 Global
+	GlobalSection(TeamFoundationVersionControl) = preSolution
+		SccNumberOfProjects = 5
+		SccEnterpriseProvider = {4CA58AB2-18FA-4F8D-95D4-32DDF27D184C}
+		SccTeamFoundationServer = https://tfs01.codeplex.com/
+		SccLocalPath0 = .
+		SccProjectUniqueName1 = RssToolkit\\RssToolkit.csproj
+		SccProjectName1 = RssToolkit
+		SccLocalPath1 = RssToolkit
+		SccProjectUniqueName2 = RssDl\\RssDl.csproj
+		SccProjectName2 = RssDl
+		SccLocalPath2 = RssDl
+		SccProjectUniqueName3 = RssToolkitUnitTests\\RssToolkitUnitTest.csproj
+		SccProjectName3 = RssToolkitUnitTests
+		SccLocalPath3 = RssToolkitUnitTests
+		SccWebProject4 = true
+		SccProjectUniqueName4 = RssToolkitSampleWebApplication
+		SccProjectName4 = RssToolkitSampleWebApplication
+		SccLocalPath4 = RssToolkitSampleWebApplication
+		SccProjectEnlistmentChoice4 = 2
+	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|.NET = Debug|.NET
 		Debug|Any CPU = Debug|Any CPU
