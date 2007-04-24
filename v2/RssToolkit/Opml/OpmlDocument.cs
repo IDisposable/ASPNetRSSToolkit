@@ -88,17 +88,31 @@ namespace RssToolkit.Opml
         /// </summary>
         /// <param name="url">The URL.</param>
         /// <returns>OpmlDocument</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings", MessageId = "0#")]
-        public static OpmlDocument LoadFromUrl(string url)
+        public static OpmlDocument Load(System.Uri url)
         {
-            if (String.IsNullOrEmpty(url))
+            if (url == null)
             {
-                throw new ArgumentException(string.Format(Resources.RssToolkit.Culture, Resources.RssToolkit.ArgmentException, "url"));
+                throw new ArgumentNullException("url");
             }
 
-            string opmlXml = DownloadManager.GetFeed(url);
+            string opmlXml = string.Empty;
+            using (Stream opmlStream = DownloadManager.GetFeed(url.ToString()))
+            {
+                using (XmlTextReader reader = new XmlTextReader(opmlStream))
+                {
+                    while (reader.Read())
+                    {
+                        if (reader.NodeType == XmlNodeType.Element &&
+                            reader.LocalName.Equals("opml", StringComparison.OrdinalIgnoreCase))
+                        {
+                            opmlXml = reader.ReadOuterXml();
+                            break;
+                        }
+                    }
+                }
+            }
 
-            return LoadFromXml(opmlXml);
+            return Load(opmlXml);
         }
 
         /// <summary>
@@ -106,7 +120,7 @@ namespace RssToolkit.Opml
         /// </summary>
         /// <param name="xml">The XML.</param>
         /// <returns>OpmlDocument</returns>
-        public static OpmlDocument LoadFromXml(string xml)
+        public static OpmlDocument Load(string xml)
         {
             if (String.IsNullOrEmpty(xml))
             {

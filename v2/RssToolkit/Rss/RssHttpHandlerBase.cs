@@ -31,7 +31,7 @@ namespace RssToolkit.Rss
         /// </summary>
         /// <value></value>
         /// <returns>true if the <see cref="T:System.Web.IHttpHandler"></see> instance is reusable; otherwise, false.</returns>
-        public bool IsReusable
+        bool IHttpHandler.IsReusable
         {
             get
             {
@@ -87,14 +87,21 @@ namespace RssToolkit.Rss
             // parse the rss name and the user name from the query string
             string userName;
             string rssName;
-            RssHttpHandlerHelper.ParseChannelQueryString(context.Request, out rssName, out userName);
+            DocumentType documentType;
+            RssHttpHandlerHelper.ParseChannelQueryString(context.Request, out rssName, out userName, out documentType);
 
             // populate items (call the derived class)
             PopulateRss(rssName, userName);
 
             // save XML into response
             XmlDocument doc = new XmlDocument();
-            doc.LoadXml(_rss.ToXml());
+            string inputXml = _rss.ToXml(documentType);
+            if (documentType == DocumentType.Opml)
+            {
+                inputXml = inputXml.Replace("#FillValue#", context.Request.Url.ToString());
+            }
+
+            doc.LoadXml(inputXml);
             context.Response.ContentType = "text/xml";
             doc.Save(context.Response.OutputStream);
         }

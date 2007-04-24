@@ -10,6 +10,14 @@ public class RssHyperLinkFromRssFile :  RssToolkit.Rss.RssDocumentHttpHandler
     protected override void PopulateRss(string channelName, string userName) 
     {
         Rss.Channel = new RssChannel();
+        Rss.Version = "2.0";
+        Rss.Channel.Title = "RssHyperLink From Rss File";
+        Rss.Channel.PubDate = "Tue, 10 Apr 2007 23:01:10 GMT";
+        Rss.Channel.LastBuildDate = "Tue, 10 Apr 2007 23:01:10 GMT";
+        Rss.Channel.WebMaster = "webmaster@email.com";
+        Rss.Channel.Description = "This is to test RssHyperLink From Rss File";
+        Rss.Channel.Link = "~/RssHyperLink.aspx";
+        
         Rss.Channel.Items = new List<RssItem>();
         if (!string.IsNullOrEmpty(channelName))
         {

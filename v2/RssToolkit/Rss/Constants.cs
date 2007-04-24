@@ -25,5 +25,20 @@ namespace RssToolkit
         /// Rss 2.0 Xsd Schema
         /// </summary>
         public const string Rss20Xsd = "RssToolkit.Resources.Rss20.xsd";
+
+        /// <summary>
+        /// Xsl for converting Rss 2.0 to Atom
+        /// </summary>
+        public const string RssToAtomXsl = "RssToolkit.Resources.Rss20ToAtom.xsl";
+
+        /// <summary>
+        /// Xsl for converting Rss 2.0 to Rdf
+        /// </summary>
+        public const string RssToRdfXsl = "RssToolkit.Resources.Rss20ToRdf.xsl";
+
+        /// <summary>
+        /// Xsl for converting Rss 2.0 to Opml
+        /// </summary>
+        public const string RssToOpmlXsl = "RssToolkit.Resources.Rss20ToOpml.xsl";
     }
 }

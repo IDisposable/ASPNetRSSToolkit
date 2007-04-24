@@ -193,6 +193,11 @@
                         <xs:documentation>A hint for aggregators telling them which days they can skip.</xs:documentation>
                     </xs:annotation>
                 </xs:element>
+                <xs:element name="rating" type="xs:string" minOccurs="0">
+                  <xs:annotation>
+                    <xs:documentation>The http://www.w3.org/PICS/ PICS rating for the channel.</xs:documentation>
+                  </xs:annotation>
+                </xs:element>
                 <xs:any namespace="##other" processContents="lax" minOccurs="0" maxOccurs="unbounded">
                     <xs:annotation>
                         <xs:documentation>Extensibility element.</xs:documentation>
@@ -459,5 +464,6 @@ Date			Revision		Description
 23-Jun-2003		9    - Added legal boilerplate license text for LGPL.
                                                   - Minor formatting changes.
 24-Jun-2003	            10    - Missing types for item/title and item/description - Spotted by Andreas Schwotzer.
+19-Apr-2007   11    - Added PICS Rating
 -->
 </xs:schema>

@@ -98,7 +98,7 @@ namespace RssToolkit.Rss
         /// <param name="rssDocument">The RSS document.</param>
         /// <typeparam name="T">RssDocumentBase</typeparam>
         /// <returns>string</returns>
-        public static string ToXml<T>(T rssDocument) where T : RssDocumentBase
+        public static string ToRssXml<T>(T rssDocument) where T : RssDocumentBase
         {
             if (rssDocument == null)
             {
@@ -120,40 +120,94 @@ namespace RssToolkit.Rss
         /// <summary>
         /// Gets the type of the document.
         /// </summary>
-        /// <param name="url">The URL.</param>
-        /// <param name="xml">The XML.</param>
-        /// <returns>DocumentType</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1021:AvoidOutParameters", MessageId = "1#"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings", MessageId = "0#")]
-        public static DocumentType GetDocumentType(string url, out string xml)
+        /// <param name="nodeName">Node Name</param>
+        /// <returns>RssDocument</returns>
+        public static DocumentType GetDocumentType(string nodeName)
         {
-            if (string.IsNullOrEmpty(url))
+            if (string.IsNullOrEmpty(nodeName))
             {
-                throw new ArgumentException(string.Format(Resources.RssToolkit.Culture, Resources.RssToolkit.ArgmentException, "url"));
+                throw new ArgumentException(string.Format(Resources.RssToolkit.Culture, Resources.RssToolkit.ArgmentException, "nodeName"));
             }
 
-            string cachedXml = DownloadManager.GetFeed(url);
-            XmlDocument xmlDocument = new XmlDocument();
-            xmlDocument.LoadXml(cachedXml);
-            xml = cachedXml;
-            
-            if (xmlDocument.DocumentElement.LocalName.Equals("rss", StringComparison.InvariantCultureIgnoreCase))
+            if (nodeName.Equals("rss", StringComparison.OrdinalIgnoreCase))
             {
                 return DocumentType.Rss;
             }
-            else if (xmlDocument.DocumentElement.LocalName.Equals("opml", StringComparison.InvariantCultureIgnoreCase))
+            else if (nodeName.Equals("opml", StringComparison.OrdinalIgnoreCase))
             {
                 return DocumentType.Opml;
             }
-            else if (xmlDocument.DocumentElement.LocalName.Equals("feed", StringComparison.InvariantCultureIgnoreCase))
+            else if (nodeName.Equals("feed", StringComparison.OrdinalIgnoreCase))
             {
                 return DocumentType.Atom;
             }
-            else if (xmlDocument.DocumentElement.LocalName.Equals("rdf", StringComparison.InvariantCultureIgnoreCase))
+            else if (nodeName.Equals("rdf", StringComparison.OrdinalIgnoreCase))
             {
                 return DocumentType.Rdf;
             }
 
             return DocumentType.Unknown;
+        }
+
+        /// <summary>
+        /// Converts to RSS XML.
+        /// </summary>
+        /// <param name="input">The input.</param>
+        /// <returns>Xml string in Rss Format</returns>
+        public static string ConvertToRssXml(string input)
+        {
+            using (StringReader stringReader = new StringReader(input))
+            {
+                using (XmlTextReader reader = new XmlTextReader(stringReader))
+                {
+                    return ConvertToRssXml(reader);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Converts to RSS XML.
+        /// </summary>
+        /// <param name="reader">The reader.</param>
+        /// <returns>Xml string in Rss Format</returns>
+        public static string ConvertToRssXml(XmlReader reader)
+        {
+            if (reader == null)
+            {
+                throw new ArgumentNullException("reader");
+            }
+
+            string rssXml = string.Empty;
+            
+            while (reader.Read())
+            {
+                if (reader.NodeType == XmlNodeType.Element)
+                {
+                    DocumentType feedType = RssXmlHelper.GetDocumentType(reader.LocalName);
+                    string outerXml = reader.ReadOuterXml();
+                    switch (feedType)
+                    {
+                        case DocumentType.Rss:
+                            rssXml = outerXml;
+                            break;
+                        case DocumentType.Opml:
+                            RssAggregator aggregator = new RssAggregator();
+                            aggregator.Load(outerXml);
+                            rssXml = aggregator.RssXml;
+                            break;
+                        case DocumentType.Atom:
+                            rssXml = DoXslTransform(outerXml, GetStreamFromResource(Constants.AtomToRssXsl));
+                            break;
+                        case DocumentType.Rdf:
+                            rssXml = DoXslTransform(outerXml, GetStreamFromResource(Constants.RdfToRssXsl));
+                            break;
+                    }
+
+                    break;
+                }
+            }
+
+            return rssXml;
         }
 
         /// <summary>
@@ -197,54 +251,10 @@ namespace RssToolkit.Rss
             url = RssXmlHelper.ResolveAppRelativeLinkToUrl(url);
 
             RssAggregator aggregator = new RssAggregator();
-            aggregator.LoadFromUrl(url);
+            aggregator.Load(new System.Uri(url));
             string rssXml = aggregator.RssXml;
 
             return RssXmlHelper.DeserializeFromXmlUsingStringReader<T>(rssXml);
-        }
-
-        /// <summary>
-        /// Converts the atom to RSS.
-        /// </summary>
-        /// <param name="documentType">Rss Document Type</param>
-        /// <param name="inputXml">The input XML.</param>
-        /// <returns>string</returns>
-        public static string ConvertToRss(DocumentType documentType, string inputXml)
-        {
-            string returnValue;
-            Assembly assembly = Assembly.GetExecutingAssembly();
-            string xslFileName;
-
-            switch (documentType)
-            {
-                case DocumentType.Atom:
-                    xslFileName = Constants.AtomToRssXsl;
-                    break;
-                case DocumentType.Rdf:
-                    xslFileName = Constants.RdfToRssXsl;
-                    break;
-                default:
-                    return null;
-            }
-
-            Stream stream = assembly.GetManifestResourceStream(xslFileName);
-            using (StringWriter outputWriter = new StringWriter(System.Globalization.CultureInfo.InvariantCulture))
-            {
-                using (StringReader stringReader = new StringReader(inputXml))
-                {
-                    XPathDocument xpathDoc = new XPathDocument(stringReader);
-                    XslCompiledTransform transform = new XslCompiledTransform();
-                    using (XmlTextReader styleSheetReader = new XmlTextReader(stream))
-                    {
-                        transform.Load(styleSheetReader);
-                        transform.Transform(xpathDoc, null, outputWriter);
-                    }
-                }
-
-                returnValue = outputWriter.ToString();
-            }
-
-            return returnValue;
         }
 
         /// <summary>
@@ -303,6 +313,31 @@ namespace RssToolkit.Rss
             }
         }
 
+        /// <summary>
+        /// Does the XSL transform.
+        /// </summary>
+        /// <param name="inputXml">The input XML.</param>
+        /// <param name="xslResource">The XSL resource.</param>
+        /// <returns></returns>
+        public static string DoXslTransform(string inputXml, Stream xslResource)
+        {
+            using (StringWriter outputWriter = new StringWriter(System.Threading.Thread.CurrentThread.CurrentUICulture))
+            {
+                using (StringReader stringReader = new StringReader(inputXml))
+                {
+                    XPathDocument xpathDoc = new XPathDocument(stringReader);
+                    XslCompiledTransform transform = new XslCompiledTransform();
+                    using (XmlTextReader styleSheetReader = new XmlTextReader(xslResource))
+                    {
+                        transform.Load(styleSheetReader);
+                        transform.Transform(xpathDoc, null, outputWriter);
+                    }
+                }
+
+                return outputWriter.ToString();
+            }
+
+        }
 
         /// <summary>
         /// Changes Time zone based on GMT
@@ -311,7 +346,7 @@ namespace RssToolkit.Rss
         /// Author - t_rendelmann
         /// </summary>
         /// <param name="zone">The zone.</param>
-        /// <returns></returns>
+        /// <returns>RFCTimeZoneToGMTBias</returns>
         private static double RFCTimeZoneToGMTBias(string zone)
         {
             Dictionary<string, int> timeZones;
@@ -378,7 +413,7 @@ namespace RssToolkit.Rss
             else
             { // named format
                 s = zone.ToUpper(System.Globalization.CultureInfo.InvariantCulture).Trim();
-                foreach(string key in timeZones.Keys)
+                foreach (string key in timeZones.Keys)
                 {
                     if (key.Equals(s))
                     {
@@ -388,6 +423,54 @@ namespace RssToolkit.Rss
             }
 
             return 0.0;
+        }
+
+        /// <summary>
+        /// Converts the atom to RSS.
+        /// </summary>
+        /// <param name="documentType">Rss Document Type</param>
+        /// <param name="inputXml">The input XML.</param>
+        /// <returns>string</returns>
+        public static string ConvertRssTo(DocumentType ouputType, string rssXml)
+        {
+            if (string.IsNullOrEmpty(rssXml))
+            {
+                return null;
+            }
+
+            switch (ouputType)
+            {
+                case DocumentType.Rss:
+                    return rssXml;
+                case DocumentType.Atom:
+                    using (Stream stream = GetStreamFromResource(Constants.RssToAtomXsl))
+                    {
+                        return RssXmlHelper.DoXslTransform(rssXml, stream);
+                    }
+                case DocumentType.Rdf:
+                    using (Stream stream = GetStreamFromResource(Constants.RssToRdfXsl))
+                    {
+                        return RssXmlHelper.DoXslTransform(rssXml, stream);
+                    }
+                case DocumentType.Opml:
+                    using (Stream stream = GetStreamFromResource(Constants.RssToOpmlXsl))
+                    {
+                        return RssXmlHelper.DoXslTransform(rssXml, stream);
+                    }
+                default:
+                    return null;
+            }
+        }
+
+        private static Stream GetStreamFromResource(string resourceFileName)
+        {
+            Assembly assembly = Assembly.GetExecutingAssembly();
+            if (assembly != null)
+            {
+                return assembly.GetManifestResourceStream(resourceFileName);
+            }
+
+            return null;
         }
     }
 }

@@ -3,15 +3,14 @@
 <%@ Register Assembly="RssToolkit" Namespace="RssToolkit.Web.WebControls"
     TagPrefix="cc1" %>
     <script language="c#" runat="server">
-void Page_Load(object sender, EventArgs e)
+        void Page_Load(object sender, EventArgs e)
         {
-            MSNBCRss c = MSNBCRss.LoadRss();
+            MSNBCRss c = MSNBCRss.Load();
 
             Image1.ImageUrl = c.Channel.Image.Url;
 
             GridView1.DataSource = c.Channel.Items;
             GridView1.DataBind();
-    
         }
 </script>
 

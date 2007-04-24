@@ -2,8 +2,7 @@
 <xsl:stylesheet version="1.0"
 xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"  >
     <xsl:template match="/">
-        <xsl:element name="rss">
-            <xsl:attribute name="version">2.0</xsl:attribute>
+        <xsl:element name="rdf">
             <xsl:element name="channel">
                 <xsl:element name="generator">
                     <xsl:value-of select="//*[name()='channel']/*[name()='generator']"/>
@@ -26,8 +25,8 @@ xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:rdf="http://www.w3.org/19
                 <xsl:element name="lastBuildDate">
                     <xsl:value-of select="//*[name()='channel']/*[name()='lastBuildDate']"/>
                 </xsl:element>
-                <xsl:call-template name="items"/>
             </xsl:element>
+            <xsl:call-template name="items"/>
         </xsl:element>
     </xsl:template>
 

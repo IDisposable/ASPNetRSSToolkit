@@ -70,7 +70,7 @@ namespace RssToolkit.Web.Design
             }
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2201:DoNotRaiseReservedExceptionTypes"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:DoNotPassLiteralsAsLocalizedParameters", MessageId = "System.Windows.Forms.MessageBox.Show(System.Windows.Forms.IWin32Window,System.String,System.String,System.Windows.Forms.MessageBoxButtons,System.Windows.Forms.MessageBoxIcon)"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1300:SpecifyMessageBoxOptions")]
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "rss"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2201:DoNotRaiseReservedExceptionTypes"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:DoNotPassLiteralsAsLocalizedParameters", MessageId = "System.Windows.Forms.MessageBox.Show(System.Windows.Forms.IWin32Window,System.String,System.String,System.Windows.Forms.MessageBoxButtons,System.Windows.Forms.MessageBoxIcon)"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1300:SpecifyMessageBoxOptions")]
         private void button1_Click(object sender, EventArgs e)
         {
             string url = urlComboBox.Text;
@@ -79,28 +79,7 @@ namespace RssToolkit.Web.Design
             {
                 try 
                 {
-                    RssDocument rss = new RssDocument();
-                    // validate URL
-                    string outputXml;
-                    DocumentType type = RssXmlHelper.GetDocumentType(url, out outputXml);
-                    switch (type)
-                    {
-                        case DocumentType.Rss:
-                            rss.LoadFromXml(outputXml);
-                            break;
-                        case DocumentType.Opml:
-                            rss.LoadFromOpmlXml(outputXml);
-                            break;
-                        case DocumentType.Atom:
-                            rss.LoadFromXml(RssXmlHelper.ConvertToRss(DocumentType.Atom, outputXml));
-                            break;
-                        case DocumentType.Rdf:
-                            rss.LoadFromXml(RssXmlHelper.ConvertToRss(DocumentType.Rdf, outputXml));
-                            break;
-                        default:
-                            throw new Exception();
-                    }
-
+                    RssDocument rss = RssDocument.Load(new System.Uri(url));
                     AddToHistory(url);
                 }
                 catch 

@@ -17,9 +17,10 @@ namespace RssToolkit.Rss.CodeGeneration
     /// </summary>
     internal class ClassInfo
     {
-        private string name;
-        private bool isText;
-        private Dictionary<string, PropertyInfo> properties = new Dictionary<string, PropertyInfo>();
+        private string _name;
+        private bool _isText;
+        private string _namespace;
+        private Dictionary<string, PropertyInfo> _properties = new Dictionary<string, PropertyInfo>();
 
         /// <summary>
         /// Gets or sets the name.
@@ -29,12 +30,12 @@ namespace RssToolkit.Rss.CodeGeneration
         {
             get 
             { 
-                return name; 
+                return _name; 
             }
 
             set 
             { 
-                name = value; 
+                _name = value; 
             }
         }
 
@@ -46,12 +47,29 @@ namespace RssToolkit.Rss.CodeGeneration
         {
             get
             {
-                return isText;
+                return _isText;
             }
 
             set
             {
-                isText = value;
+                _isText = value;
+            }
+        }
+
+        /// <summary>
+        /// Gets or sets the name of the namespace.
+        /// </summary>
+        /// <value>The name of the namespace.</value>
+        public string Namespace
+        {
+            get
+            {
+                return _namespace;
+            }
+
+            set
+            {
+                _namespace = value;
             }
         }
 
@@ -63,7 +81,7 @@ namespace RssToolkit.Rss.CodeGeneration
         {
             get 
             { 
-                return properties; 
+                return _properties; 
             }
         }
     }

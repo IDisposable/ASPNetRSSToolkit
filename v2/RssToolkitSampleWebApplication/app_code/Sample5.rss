@@ -2,11 +2,14 @@
 <rss version="2.0">
     <channel>
         <title>Sample Channel</title>
-        <link>~/scenario5.aspx</link>
+        <link>~/RssHyperlinkFromCustomClass.aspx</link>
         <description>Channel For Scenario5 in ASP.NET RSS Toolkit samples.</description>
         <ttl>10</ttl>
         <name></name>
         <user></user>
+        <pubDate>Tue, 10 Apr 2007 23:01:10 GMT</pubDate>
+        <lastBuildDate>Tue, 10 Apr 2007 23:01:10 GMT</lastBuildDate>
+        <webMaster>webmaster@email.com</webMaster>
         <item>
             <title></title>
             <description></description>

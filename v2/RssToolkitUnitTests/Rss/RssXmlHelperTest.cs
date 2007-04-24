@@ -2,11 +2,13 @@
 // The test owner should check each test for validity.
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
-using System.Text;
 using System.Collections.Generic;
+using System.Text;
+using System.Xml;
 using RssToolkit.Rss;
 using System.Data;
 using RssToolkitUnitTest.Utility;
+
 namespace RssToolkitUnitTest
 {
     /// <summary>
@@ -82,37 +84,12 @@ namespace RssToolkitUnitTest
         }
 
         /// <summary>
-        ///A test for GetDocumentType (string, out string)
-        ///</summary>
-        [TestMethod()]
-        public void RssXmlHelperGetDocumentTypeTest()
-        {
-            string rssUrl = RssUtility.RssUrl;
-
-            string opmlUrl = RssUtility.OpmlUrl;
-            string xml;
-            DocumentType actual = RssToolkit.Rss.RssXmlHelper.GetDocumentType(rssUrl, out xml);
-            RssDocument rss = RssXmlHelper.DeserializeFromXmlUsingStringReader<RssDocument>(xml);
-
-            Assert.IsTrue(actual == DocumentType.Rss, "RssToolkit.Rss.RssXmlHelper.GetDocumentType did not return the expected value.");
-            Assert.IsTrue(rss.Channel.Items.Count > 0, "RssToolkit.Rss.RssXmlHelper.GetDocumentType did not return the expected value.");
-
-            actual = RssToolkit.Rss.RssXmlHelper.GetDocumentType(opmlUrl, out xml);
-            rss.LoadFromOpmlXml(xml);
-
-            Assert.IsTrue(actual == DocumentType.Opml, "RssToolkit.Rss.RssXmlHelper.GetDocumentType did not return the expected value.");
-            Assert.IsTrue(rss.Channel.Items.Count > 0, "RssToolkit.Rss.RssXmlHelper.GetDocumentType did not return the expected value.");
-        }
-
-        /// <summary>
         ///A test for LoadRssFromOpmlUrl&lt;&gt; (string)
         ///</summary>
         [TestMethod()]
         public void RssXmlHelperLoadRssFromOpmlUrlTest()
         {
-            string opmlUrl = RssUtility.OpmlUrl;
-            RssDocument rss = new RssDocument();
-            rss.LoadFromOpmlUrl(opmlUrl);
+            RssDocument rss = RssDocument.Load(new System.Uri(RssUtility.OpmlUrl));
             Assert.IsTrue(rss.Channel.Items.Count > 0, "RssToolkit.Rss.RssXmlHelper.GetDocumentType did not return the expected value.");
         }
 
@@ -129,20 +106,32 @@ namespace RssToolkitUnitTest
         }
 
         /// <summary>
-        ///A test for ToXml&lt;&gt; (T)
+        ///A test for ToRssXml
         ///</summary>
         [TestMethod()]
-        public void RssXmlHelperToXmlTest()
+        public void RssXmlHelperToRssXmlTest()
         {
             string rssUrl = "http://rss.msnbc.msn.com/id/3032091/device/rss/rss.xml";
-            RssDocument rss = new RssDocument();
-            rss.LoadFromUrl(rssUrl);
-            string xml = RssXmlHelper.ToXml<RssDocument>(rss);
-            Assert.IsFalse(string.IsNullOrEmpty(xml), "RssToolkit.Rss.RssXmlHelper.ToXml did not return the expected value.");
+            RssDocument rss = RssDocument.Load(new System.Uri(rssUrl));
+            string xml = RssXmlHelper.ToRssXml<RssDocument>(rss);
+            Assert.IsFalse(string.IsNullOrEmpty(xml), "RssToolkit.Rss.RssXmlHelper.ToRssXml did not return the expected value.");
             System.Xml.XmlDocument xmlDocument = new System.Xml.XmlDocument();
             xmlDocument.LoadXml(xml);
-            Assert.IsTrue(xmlDocument.DocumentElement.LocalName.Equals("rss", StringComparison.OrdinalIgnoreCase), "RssToolkit.Rss.RssXmlHelper.ToXml did not return the expected value.");
-            Assert.IsTrue(xmlDocument.SelectNodes("/rss/channel/item").Count > 0, "RssToolkit.Rss.RssXmlHelper.ToXml did not return the expected value.");
+            Assert.IsTrue(xmlDocument.DocumentElement.LocalName.Equals("rss", StringComparison.OrdinalIgnoreCase), "RssToolkit.Rss.RssXmlHelper.ToRssXml did not return the expected value.");
+            Assert.IsTrue(xmlDocument.SelectNodes("/rss/channel/item").Count > 0, "RssToolkit.Rss.RssXmlHelper.ToRssXml did not return the expected value.");
+        }
+
+        /// <summary>
+        ///A test for ToRssXml
+        ///</summary>
+        [TestMethod()]
+        public void RssXmlHelperConvertToRssTest()
+        {
+            RssDocument rss = RssDocument.Load(RssXmlHelper.ConvertToRssXml(RssUtility.AtomXml));
+            Assert.IsTrue(rss.Channel.Items.Count > 0);
+
+            rss = RssDocument.Load(RssXmlHelper.ConvertToRssXml(RssUtility.RdfXml));
+            Assert.IsTrue(rss.Channel.Items.Count > 0);
         }
     }
 }

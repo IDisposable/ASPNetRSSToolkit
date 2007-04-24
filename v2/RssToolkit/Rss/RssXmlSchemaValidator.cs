@@ -59,7 +59,6 @@ namespace RssToolkit.Rss
         /// Valids the Xml doc.
         /// </summary>
         /// <param name="xml">The XML.</param>
-        /// <param name="schemaNamespace">The schema namespace.</param>
         /// <param name="xsd">The XSD.</param>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         public void ValidXmlDoc(string xml, XmlReader xsd)
@@ -88,7 +87,7 @@ namespace RssToolkit.Rss
                 using (StringReader stringReader = new StringReader(xml))
                 {
                     reader = XmlReader.Create(stringReader, settings);
-                    while (reader.Read()) ;
+                    while (reader.Read());
                 }
             } 
             catch (Exception ex)

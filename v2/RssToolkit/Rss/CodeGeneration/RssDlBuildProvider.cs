@@ -119,22 +119,19 @@ namespace RssToolkit.Rss.CodeGeneration
                     throw new InvalidDataException("Missing 'url' or 'file' attribute - one must be specified");
                 }
 
-                // load channel
-                RssDocument rss = new RssDocument(); ;
+                RssDocument rss = null;
 
                 if (!string.IsNullOrEmpty(url))
                 {
-                    rss.LoadFromUrl(url);
+                    // load RssDocument
+                    rss = RssDocument.Load(new System.Uri(url));
                 }
                 else
                 {
-                    string rssXml;
-                    using (StreamReader streamReader = File.OpenText(file))
+                    using (XmlTextReader reader = new XmlTextReader(file))
                     {
-                        rssXml = streamReader.ReadToEnd();
+                        rss = RssDocument.Load(reader);
                     }
-
-                    rss.LoadFromXml(rssXml);
                 }
 
                 // compile channel

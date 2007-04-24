@@ -3,16 +3,14 @@
     
  void Page_Load(object sender, EventArgs e)
  {
-    RssToolkit.Rss.RssDocument rss = new RssToolkit.Rss.RssDocument();
-    rss.LoadFromUrl("http://rss.msnbc.msn.com/id/3032091/device/rss/rss.xml");
+    RssToolkit.Rss.RssDocument rss = RssToolkit.Rss.RssDocument.Load(new System.Uri("http://rss.msnbc.msn.com/id/3032091/device/rss/rss.xml"));
     Image1.ImageUrl = rss.Channel.Image.Url;
     GridView1.DataSource = rss.SelectItems();
     GridView1.DataBind();
  }
 </script>
 <asp:Content ContentPlaceHolderID="ContentPlaceHolder1" ID="Content1" runat="Server">
-    <h2 >
-        Consuming RSS feed programmatically using RssDocument</h2>
+    <h2>Consuming RSS feed programmatically using RssDocument</h2>
             <asp:Image ID="Image1" runat="server" />
             <asp:GridView ID="GridView1" runat="server" CellPadding="4" ForeColor="#333333" GridLines="None">
                 <FooterStyle BackColor="#5D7B9D" Font-Bold="True" ForeColor="White" />

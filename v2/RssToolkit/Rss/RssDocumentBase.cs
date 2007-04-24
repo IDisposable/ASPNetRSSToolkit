@@ -10,7 +10,10 @@
 using System;
 using System.Data;
 using System.Collections.Generic;
+using System.IO;
+using System.Reflection;
 using System.Text;
+using System.Xml;
 using System.Xml.Serialization;
 
 namespace RssToolkit.Rss
@@ -20,6 +23,7 @@ namespace RssToolkit.Rss
     /// </summary>
     public abstract class RssDocumentBase
     {
+        private string _url;
         private string _version;
         private RssChannel _channel;
 
@@ -59,12 +63,127 @@ namespace RssToolkit.Rss
         }
 
         /// <summary>
+        /// Gets or sets the URL.
+        /// </summary>
+        /// <value>The URL.</value>
+        internal string Url
+        {
+            get
+            {
+                return _url;
+            }
+
+            set
+            {
+                _url = value;
+            }
+        }
+
+        /// <summary>
+        /// Returns Xml in the type specified by outputType
+        /// </summary>
+        /// <param name="outputType">Type of the output.</param>
+        /// <returns></returns>
+        public virtual string ToXml(DocumentType outputType)
+        {
+            return string.Empty;
+        }
+
+        /// <summary>
         /// string XML representation.
         /// </summary>
         /// <returns>string</returns>
-        public virtual string ToXml()
+        protected static string ToXml<T>(DocumentType outputType, T rssDocument) where T : RssDocumentBase
         {
-            return string.Empty;
+            string rssXml = RssXmlHelper.ToRssXml<T>(rssDocument);
+
+            return RssXmlHelper.ConvertRssTo(outputType, rssXml);
+        }
+
+        /// <summary>
+        /// Loads the specified URL.
+        /// </summary>
+        /// <param name="url">The URL.</param>
+        /// <returns>RssDocument</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings", MessageId = "0#"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter")]
+        protected static T Load<T>(System.Uri url) where T : RssDocumentBase
+        {
+            if (url == null)
+            {
+                throw new ArgumentNullException("url");
+            }
+
+            string rssUrl = url.ToString();
+            
+            T rss = null;
+
+            // resolve app-relative URLs
+            rssUrl = RssXmlHelper.ResolveAppRelativeLinkToUrl(rssUrl);
+
+            // download the feed
+            using (Stream cachedXml = DownloadManager.GetFeed(rssUrl))
+            {
+                using (XmlTextReader reader = new XmlTextReader(cachedXml))
+                {
+                    rss = Load<T>(reader);
+                }
+            }
+
+            //// remember the url
+            rss.Url = rssUrl;
+
+            return rss;
+        }
+
+        /// <summary>
+        /// Loads the specified reader.
+        /// </summary>
+        /// <param name="reader">The reader.</param>
+        /// <returns>Generic Type of RssDocumentBase</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter")]
+        protected static T Load<T>(XmlReader reader) where T : RssDocumentBase
+        {
+            T rss = null;
+            string rssXml = RssXmlHelper.ConvertToRssXml(reader);
+
+            if (!string.IsNullOrEmpty(rssXml))
+            {
+                rss = LoadFromRssXml<T>(rssXml);
+            }
+
+            return rss;
+        }
+
+        /// <summary>
+        /// Loads from XML.
+        /// </summary>
+        /// <param name="xml">The XML.</param>
+        /// <returns>Generic Type of RssDocumentBase</returns>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter")]
+        protected static T Load<T>(string xml) where T : RssDocumentBase
+        {
+            T rssDocument = null;
+            using (StringReader stringReader = new StringReader(xml))
+            {
+                using (XmlTextReader reader = new XmlTextReader(stringReader))
+                {
+                    rssDocument = Load<T>(reader);
+                }
+            }
+
+            return rssDocument;
+        }
+
+        private static T LoadFromRssXml<T>(string rssXml) where T : RssDocumentBase
+        {
+            if (string.IsNullOrEmpty(rssXml))
+            {
+                throw new ArgumentException(string.Format(Resources.RssToolkit.Culture, Resources.RssToolkit.ArgmentException, "xml"));
+            }
+
+            T rss = RssXmlHelper.DeserializeFromXmlUsingStringReader<T>(rssXml);
+
+            return rss;
         }
     }
 }

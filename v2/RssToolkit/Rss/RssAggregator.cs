@@ -62,15 +62,14 @@ namespace RssToolkit.Rss
         /// Loads from URL.
         /// </summary>
         /// <param name="opmlUrl">The opml URL.</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings", MessageId = "0#")]
-        public void LoadFromUrl(string opmlUrl)
+        public void Load(System.Uri opmlUrl)
         {
-            if (string.IsNullOrEmpty(opmlUrl))
+            if (opmlUrl == null)
             {
-                throw new ArgumentException(string.Format(Resources.RssToolkit.Culture, Resources.RssToolkit.ArgmentException, "opmlUrl"));
+                throw new ArgumentNullException("opmlUrl");
             }
 
-            OpmlDocument opmlDoc = OpmlDocument.LoadFromUrl(opmlUrl);
+            OpmlDocument opmlDoc = OpmlDocument.Load(opmlUrl);
 
             Load(opmlDoc);
         }
@@ -79,14 +78,14 @@ namespace RssToolkit.Rss
         /// Loads from XML.
         /// </summary>
         /// <param name="xml">The XML.</param>
-        public void LoadFromXml(string xml)
+        public void Load(string xml)
         {
             if (string.IsNullOrEmpty(xml))
             {
                 throw new ArgumentException(string.Format(Resources.RssToolkit.Culture, Resources.RssToolkit.ArgmentException, "xml"));
             }
 
-            OpmlDocument opmlDoc = OpmlDocument.LoadFromXml(xml);
+            OpmlDocument opmlDoc = OpmlDocument.Load(xml);
 
             Load(opmlDoc);
         }
@@ -135,21 +134,44 @@ namespace RssToolkit.Rss
             try
             {
                 outline = (OutlineInfo)state;
-                string xmlString = DownloadManager.GetFeed(outline.Outline.XmlUrl);
-                lock (aggregateRss)
-                {
-                    RssXmlSchemaValidator validator = new RssXmlSchemaValidator();
-                    Assembly assembly = Assembly.GetExecutingAssembly();
-                    Stream stream = assembly.GetManifestResourceStream(Constants.Rss20Xsd);
+                string xmlString = string.Empty;
 
-                    validator.ValidXmlDoc(xmlString, new XmlTextReader(stream)); 
-                    if (validator.IsValidXml)
+                using (Stream rssStream = DownloadManager.GetFeed(outline.Outline.XmlUrl))
+                {
+                    using (XmlTextReader reader = new XmlTextReader(rssStream))
                     {
-                        aggregateRss.Add(xmlString);
+                        while (reader.Read())
+                        {
+                            if (reader.NodeType == XmlNodeType.Element)
+                            {
+                                xmlString = reader.ReadOuterXml();
+                                break;
+                            }
+                        }
                     }
-                    else
+                }
+
+                ////convert to rss
+                xmlString = RssXmlHelper.ConvertToRssXml(xmlString);
+
+                if (!string.IsNullOrEmpty(xmlString))
+                {
+                    lock (aggregateRss)
                     {
-                        NotifySubscribers(null, "Rss not valid in OPML for - " + outline.Outline.XmlUrl, RssSeverityType.Warning);
+                        RssXmlSchemaValidator validator = new RssXmlSchemaValidator();
+                        Assembly assembly = Assembly.GetExecutingAssembly();
+                        using (Stream stream = assembly.GetManifestResourceStream(Constants.Rss20Xsd))
+                        {
+                            validator.ValidXmlDoc(xmlString, new XmlTextReader(stream));
+                            if (validator.IsValidXml)
+                            {
+                                aggregateRss.Add(xmlString);
+                            }
+                            else
+                            {
+                                NotifySubscribers(null, "Rss not valid in OPML for - " + outline.Outline.XmlUrl, RssSeverityType.Warning);
+                            }
+                        }
                     }
                 }
             }
@@ -202,7 +224,7 @@ namespace RssToolkit.Rss
                             DateTime date;
                             try
                             {
-                                //date = NewsComponents.Utils.DateTimeExt.Parse(node.GetElementsByTagName("pubDate")[0].InnerText);
+                                ////date = NewsComponents.Utils.DateTimeExt.Parse(node.GetElementsByTagName("pubDate")[0].InnerText);
                                 date = RssXmlHelper.Parse(node.GetElementsByTagName("pubDate")[0].InnerText);
                             }
                             catch (Exception ex)

@@ -2,6 +2,7 @@
 // The test owner should check each test for validity.
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System;
+using System.IO;
 using System.Text;
 using System.Collections.Generic;
 using RssToolkit.Rss;
@@ -89,18 +90,44 @@ namespace RssToolkitUnitTest
         public void DownloadManagerGetFeedTest()
         {
             string url = RssToolkitUnitTest.Utility.RssUtility.RssUrl;
-            string actual = RssToolkit.Rss.DownloadManager.GetFeed(url);
-            RssDocument rss = new RssDocument();
-            rss.LoadFromXml(actual);
-            Assert.IsTrue(actual.Length > 0, "RssToolkit.Rss.DownloadManager.GetFeed did not return the expected value.");
-            Assert.IsTrue(rss.Channel.Items.Count > 0, "RssToolkit.Rss.DownloadManager.GetFeed did not return the expected value.");
-            
+            using (Stream actual = RssToolkit.Rss.DownloadManager.GetFeed(url))
+            {
+                using (XmlTextReader reader = new XmlTextReader(actual))
+                {
+                    while (reader.Read())
+                    {
+                        if (reader.NodeType == XmlNodeType.Element)
+                        {
+                            break;
+                        }
+                    }
+
+                    string outerXml = reader.ReadOuterXml();
+                    RssDocument rss = RssDocument.Load(outerXml);
+                    Assert.IsTrue(outerXml.Length > 0, "RssToolkit.Rss.DownloadManager.GetFeed did not return the expected value.");
+                    Assert.IsTrue(rss.Channel.Items.Count > 0, "RssToolkit.Rss.DownloadManager.GetFeed did not return the expected value.");
+                }
+            }
+
             url = RssToolkitUnitTest.Utility.RssUtility.OpmlUrl;
-            actual = RssToolkit.Rss.DownloadManager.GetFeed(url);
-            rss = new RssDocument();
-            rss.LoadFromOpmlXml(actual);
-            Assert.IsTrue(actual.Length > 0, "RssToolkit.Rss.DownloadManager.GetFeed did not return the expected value.");
-            Assert.IsTrue(rss.Channel.Items.Count > 0, "RssToolkit.Rss.DownloadManager.GetFeed did not return the expected value.");
+            using (Stream actual = RssToolkit.Rss.DownloadManager.GetFeed(url))
+            {
+                using (XmlTextReader reader = new XmlTextReader(actual))
+                {
+                    while (reader.Read())
+                    {
+                        if (reader.NodeType == XmlNodeType.Element)
+                        {
+                            break;
+                        }
+                    }
+
+                    string outerXml = reader.ReadOuterXml();
+                    RssDocument rss = RssDocument.Load(outerXml);
+                    Assert.IsTrue(actual.Length > 0, "RssToolkit.Rss.DownloadManager.GetFeed did not return the expected value.");
+                    Assert.IsTrue(rss.Channel.Items.Count > 0, "RssToolkit.Rss.DownloadManager.GetFeed did not return the expected value.");
+                }
+            }
         }
 
         /// <summary>

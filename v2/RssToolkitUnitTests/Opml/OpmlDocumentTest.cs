@@ -102,7 +102,7 @@ namespace RssToolkitUnitTest
         public void OpmlDocumentLoadFromUrlTest()
         {
             OpmlDocument actual = RssToolkitUnitTest.Utility.RssUtility.GetOpmlDocumentFromXml();
-            Assert.IsTrue(actual.Body.Outlines.Count > 0, "RssToolkit.Opml.OpmlDocument.LoadFromUrl did not return the expected value.");
+            Assert.IsTrue(actual.Body.Outlines.Count > 0, "RssToolkit.Opml.OpmlDocument.Load did not return the expected value.");
         }
 
         /// <summary>
@@ -112,10 +112,10 @@ namespace RssToolkitUnitTest
         public void OpmlDocumentLoadFromXmlTest()
         {
             OpmlDocument actual = RssToolkitUnitTest.Utility.RssUtility.GetOpmlDocumentFromXml();
-            Assert.IsTrue(actual.Body.Outlines.Count == 2, "RssToolkit.Opml.OpmlDocument.LoadFromXml did not return the expected value.");
-            Assert.AreEqual(actual.Head.Title, "mySubscriptions.opml", "RssToolkit.Opml.OpmlDocument.LoadFromXml did not return the expected value.");
-            Assert.AreEqual(actual.Body.Outlines[0].XmlUrl, "http://news.bbc.co.uk/rss/newsonline_uk_edition/front_page/rss091.xml", "RssToolkit.Opml.OpmlDocument.LoadFromXml did not return the expected value.");
-            Assert.AreEqual(actual.Body.Outlines[1].XmlUrl, "http://news.com.com/2547-1_3-0-5.xml", "RssToolkit.Opml.OpmlDocument.LoadFromXml did not return the expected value.");
+            Assert.IsTrue(actual.Body.Outlines.Count > 0, "RssToolkit.Opml.OpmlDocument.Load did not return the expected value.");
+            Assert.AreEqual(actual.Head.Title, "mySubscriptions.opml", "RssToolkit.Opml.OpmlDocument.Load did not return the expected value.");
+            Assert.AreEqual(actual.Body.Outlines[0].XmlUrl, "http://news.bbc.co.uk/rss/newsonline_uk_edition/front_page/rss091.xml", "RssToolkit.Opml.OpmlDocument.Load did not return the expected value.");
+            Assert.AreEqual(actual.Body.Outlines[1].XmlUrl, "http://news.com.com/2547-1_3-0-5.xml", "RssToolkit.Opml.OpmlDocument.Load did not return the expected value.");
         }
 
         /// <summary>

@@ -4,8 +4,7 @@
 <script language="c#" runat="server">
     void Page_Load(object sender, EventArgs e)
     {
-        RssToolkit.Rss.RssDocument rss = new RssToolkit.Rss.RssDocument();
-        rss.LoadFromOpmlUrl("http://static2.podcatch.com/blogs/gems/opml/mySubscriptions.opml");
+        RssToolkit.Rss.RssDocument rss = RssToolkit.Rss.RssDocument.Load(new System.Uri("http://static2.podcatch.com/blogs/gems/opml/mySubscriptions.opml"));
         GridView1.DataSource = rss.SelectItems();
         GridView1.DataBind();
     }

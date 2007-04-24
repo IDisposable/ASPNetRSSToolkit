@@ -50,7 +50,7 @@ namespace RssToolkit.Rss
         /// <param name="url">The URL.</param>
         /// <returns>string</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings", MessageId = "0#")]
-        public static string GetFeed(string url)
+        public static Stream GetFeed(string url)
         {
             if (string.IsNullOrEmpty(url))
             {
@@ -159,7 +159,7 @@ namespace RssToolkit.Rss
                 }
             }
 
-            if (dom == null || string.IsNullOrEmpty(dom.Data))
+            if (dom == null || dom.Data != null)
             {
                 dom = DownLoadFeedDom(url);
 
@@ -177,7 +177,7 @@ namespace RssToolkit.Rss
             //// look for disk cache first
             CacheInfo dom = TryLoadFromDisk(url);
 
-            if (dom != null && !string.IsNullOrEmpty(dom.Data))
+            if (dom != null && dom.Data != null)
             {
                 return dom;
             }
@@ -189,7 +189,12 @@ namespace RssToolkit.Rss
             string ttlString = null;
             XmlDocument doc = new XmlDocument();
             doc.Load(url);
-            dom.Data = doc.OuterXml;
+            
+            MemoryStream documentStream = new MemoryStream();
+            doc.Save(documentStream);
+            documentStream.Flush();
+            documentStream.Position = 0;
+            dom.Data = documentStream;
 
             if (doc.SelectSingleNode("/rss/channel/ttl") != null)
             {
@@ -277,7 +282,11 @@ namespace RssToolkit.Rss
                 {
                     // found a good one - create DOM and set expiry (as found on disk)
                     CacheInfo dom = new CacheInfo();
-                    dom.Data = feedDoc.OuterXml;
+                    MemoryStream documentStream = new MemoryStream();
+                    feedDoc.Save(documentStream);
+                    documentStream.Flush();
+                    documentStream.Position = 0;
+                    dom.Data = documentStream;
                     dom.Expiry = utcExpiryFromFeedFile;
                     return dom;
                 }
@@ -313,9 +322,9 @@ namespace RssToolkit.Rss
             }
         }
 
-        private class CacheInfo
+        private class CacheInfo : IDisposable
         {
-            private string data;
+            private Stream data;
             private DateTime expiry;
 
             /// <summary>
@@ -339,7 +348,7 @@ namespace RssToolkit.Rss
             /// Gets or sets the data.
             /// </summary>
             /// <value>The data.</value>
-            public string Data
+            public Stream Data
             {
                 get 
                 { 
@@ -350,6 +359,14 @@ namespace RssToolkit.Rss
                 { 
                     data = value; 
                 }
+            }
+
+            /// <summary>
+            /// Performs application-defined tasks associated with freeing, releasing, or resetting unmanaged resources.
+            /// </summary>
+            public void Dispose()
+            {
+                data.Dispose();
             }
         }
     }

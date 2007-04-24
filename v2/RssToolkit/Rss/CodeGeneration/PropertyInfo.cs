@@ -17,9 +17,9 @@ namespace RssToolkit.Rss.CodeGeneration
     /// </summary>
     internal class PropertyInfo
     {
-        private string name;
-        private int occurances;
-        private bool isattribute;
+        private string _name;
+        private int _occurances;
+        private bool _isattribute;
 
         /// <summary>
         /// Gets or sets the name.
@@ -28,13 +28,13 @@ namespace RssToolkit.Rss.CodeGeneration
         public string Name
         {
             get 
-            { 
-                return name; 
+            {
+                return _name; 
             }
 
             set 
-            { 
-                name = value; 
+            {
+                _name = value; 
             }
         }
 
@@ -45,13 +45,13 @@ namespace RssToolkit.Rss.CodeGeneration
         public int Occurances
         {
             get 
-            { 
-                return occurances; 
+            {
+                return _occurances; 
             }
 
             set 
             {
-                occurances = value; 
+                _occurances = value; 
             }
         }
 
@@ -64,13 +64,13 @@ namespace RssToolkit.Rss.CodeGeneration
         public bool IsAttribute
         {
             get 
-            { 
-                return isattribute; 
+            {
+                return _isattribute; 
             }
 
             set 
             {
-                isattribute = value;
+                _isattribute = value;
             }
         }
     }

@@ -11,10 +11,6 @@
     <AssemblyName>FrameworkUnitTest</AssemblyName>
     <WarningLevel>4</WarningLevel>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccProvider>SAK</SccProvider>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -51,7 +47,6 @@
     <Compile Include="Opml\OpmlHeadTest.cs" />
     <Compile Include="Opml\OpmlOutlineTest.cs" />
     <Compile Include="Opml\OutlineInfoTest.cs" />
-    <Compile Include="Rss\CodeGeneration\ClassInfoTest.cs" />
     <Compile Include="Rss\CodeGeneration\PropertyInfoTest.cs" />
     <Compile Include="Rss\CodeGeneration\RssCodeGeneratorTest.cs" />
     <Compile Include="Rss\DownloadManagerTest.cs" />
@@ -63,7 +58,6 @@
     <Compile Include="Rss\RssDocumentTest.cs" />
     <Compile Include="Rss\RssEnclosureTest.cs" />
     <Compile Include="Rss\RssGuidTest.cs" />
-    <Compile Include="Rss\RssHttpHandlerHelperTest.cs" />
     <Compile Include="Rss\RssImageTest.cs" />
     <Compile Include="Rss\RssItemTest.cs" />
     <Compile Include="Rss\RssSkipDaysTest.cs" />

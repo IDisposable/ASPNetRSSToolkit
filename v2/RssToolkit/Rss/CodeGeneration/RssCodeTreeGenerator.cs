@@ -18,16 +18,17 @@ namespace RssToolkit.Rss.CodeGeneration
     /// <summary>
     /// To generate dictionary used in code generation
     /// </summary>
-    internal static class RssCodeTreeGenerator
+    internal class RssCodeTreeGenerator
     {
-        private static Stack<ParentInfo> stack = new Stack<ParentInfo>();
+        private Stack<ParentInfo> stack = new Stack<ParentInfo>();
+        private XmlNamespaceManager nps;
 
         /// <summary>
         /// Converts to dictionary.
         /// </summary>
         /// <param name="xml">The xml.</param>
         /// <returns>Dictionary</returns>
-        public static Dictionary<string, ClassInfo> ConvertToDictionary(string xml)
+        public Dictionary<string, ClassInfo> ConvertToDictionary(string xml)
         {
             if (string.IsNullOrEmpty(xml))
             {
@@ -41,7 +42,7 @@ namespace RssToolkit.Rss.CodeGeneration
             return table;
         }
 
-        private static void Parse(XmlTextReader reader, Dictionary<string, ClassInfo> table)
+        private void Parse(XmlTextReader reader, Dictionary<string, ClassInfo> table)
         {
             ParentInfo parent = null;
             string previousNode = null;
@@ -52,6 +53,22 @@ namespace RssToolkit.Rss.CodeGeneration
                 {
                     ////Got an element. This will be the name of a class.
                     string className = reader.LocalName;
+                    if (className.Equals("rss", StringComparison.OrdinalIgnoreCase))
+                    {
+                        nps = new XmlNamespaceManager(reader.NameTable);
+
+                        for (int index = 0; index < reader.AttributeCount; index++)
+                        {
+                            {
+                                reader.MoveToAttribute(index);
+                                if (reader.Name.StartsWith("xmlns"))
+                                {
+                                    nps.AddNamespace(reader.LocalName, reader.Value);
+                                }
+                            }
+                        }
+                    }
+
                     if (reader.IsStartElement() || reader.IsEmptyElement)
                     {
                         ParseStartElements(reader, table, parent, className);
@@ -65,12 +82,16 @@ namespace RssToolkit.Rss.CodeGeneration
                 }
                 else if (reader.NodeType == XmlNodeType.Text)
                 {
-                    AddTextNode(previousNode, table);
+                    if (!string.IsNullOrEmpty(previousNode))
+                    {
+                        ClassInfo classInfo = table[previousNode];
+                        classInfo.IsText = true;
+                    } 
                 }
             }
         }
 
-        private static void ParseStartElements(XmlTextReader reader, Dictionary<string, ClassInfo> table, ParentInfo parent, string className)
+        private void ParseStartElements(XmlTextReader reader, Dictionary<string, ClassInfo> table, ParentInfo parent, string className)
         {
             if (stack.Count != 0)
             {
@@ -104,14 +125,23 @@ namespace RssToolkit.Rss.CodeGeneration
                 ClassInfo classInfo = new ClassInfo();
                 classInfo.Name = className;
 
+                if (reader.LocalName != reader.Name)
+                {
+                    string lookupName = reader.Prefix == "xmlns" ? reader.LocalName : reader.Prefix;
+                    classInfo.Namespace = nps.LookupNamespace(lookupName);
+                }
+
                 ////Add all the attributes here....
                 for (int index = 0; index < reader.AttributeCount; index++)
                 {
                     PropertyInfo p = new PropertyInfo();
                     reader.MoveToAttribute(index);
-                    p.Name = reader.LocalName;
-                    p.IsAttribute = true;
-                    classInfo.Properties[p.Name] = p;
+                    if (!reader.Name.StartsWith("xmlns"))
+                    {
+                        p.Name = reader.LocalName;
+                        p.IsAttribute = true;
+                        classInfo.Properties[p.Name] = p;
+                    }
                 }
 
                 table.Add(className, classInfo);
@@ -119,13 +149,18 @@ namespace RssToolkit.Rss.CodeGeneration
             else
             {
                 ClassInfo classInfo = table[className];
-                
+                if (reader.LocalName != reader.Name)
+                {
+                    string lookupName = reader.Prefix == "xmlns" ? reader.LocalName : reader.Prefix;
+                    classInfo.Namespace = nps.LookupNamespace(lookupName);
+                }
+
                 ////Add any new attributes that are not already defined in the classInfo....
                 for (int index = 0; index < reader.AttributeCount; index++)
                 {
                     reader.MoveToAttribute(index);
                     string localName = reader.LocalName;
-                    if (!classInfo.Properties.ContainsKey(localName))
+                    if (!classInfo.Properties.ContainsKey(localName) && (!reader.Name.StartsWith("xmlns")))
                     {
                         PropertyInfo propertyInfo = new PropertyInfo();
                         propertyInfo.Name = localName;
@@ -136,7 +171,7 @@ namespace RssToolkit.Rss.CodeGeneration
             }
         }
 
-        private static void ParseEndElements(ParentInfo parent, Dictionary<string, ClassInfo> table, string className)
+        private void ParseEndElements(ParentInfo parent, Dictionary<string, ClassInfo> table, string className)
         {
             parent = stack.Pop();
             ClassInfo classInfo = table[className];
@@ -173,18 +208,9 @@ namespace RssToolkit.Rss.CodeGeneration
             }
         }
 
-        private static void AddTextNode(string className, Dictionary<string, ClassInfo> table)
-        {
-            if (!string.IsNullOrEmpty(className))
-            {
-                ClassInfo classInfo = table[className];
-                classInfo.IsText = true;
-            }
-        }
-
         private class ParentInfo
         {
-            private Dictionary<string, int> childCount = new Dictionary<string, int>();
+            private Dictionary<string, int> _childCount = new Dictionary<string, int>();
 
             /// <summary>
             /// Initializes a new instance of the <see cref="ParentInfo"/> class.
@@ -201,7 +227,7 @@ namespace RssToolkit.Rss.CodeGeneration
             {
                 get 
                 { 
-                    return childCount; 
+                    return _childCount; 
                 }
             }
         }

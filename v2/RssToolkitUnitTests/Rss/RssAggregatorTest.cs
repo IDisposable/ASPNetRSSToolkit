@@ -82,8 +82,7 @@ namespace RssToolkitUnitTest
             OpmlDocument opmlDocument = RssToolkitUnitTest.Utility.RssUtility.GetOpmlDocumentFromXml();
 
             accessor.Load(opmlDocument);
-            RssDocument rss = new RssDocument();
-            rss.LoadFromXml(target.RssXml);
+            RssDocument rss = RssDocument.Load(target.RssXml);
             Assert.IsTrue(rss.Channel.Items.Count > 0);
         }
 
@@ -95,9 +94,8 @@ namespace RssToolkitUnitTest
         {
             RssAggregator target = new RssAggregator();
             string opmlUrl = RssToolkitUnitTest.Utility.RssUtility.OpmlUrl;
-            target.LoadFromUrl(opmlUrl);
-            RssDocument rss = new RssDocument();
-            rss.LoadFromXml(target.RssXml);
+            target.Load(new System.Uri(opmlUrl));
+            RssDocument rss = RssDocument.Load(target.RssXml);
             Assert.IsTrue(rss.Channel.Items.Count > 0);
         }
 
@@ -109,9 +107,8 @@ namespace RssToolkitUnitTest
         {
             RssAggregator target = new RssAggregator();
             string xml = RssToolkitUnitTest.Utility.RssUtility.OpmlXml;
-            target.LoadFromXml(xml);
-            RssDocument rss = new RssDocument();
-            rss.LoadFromXml(target.RssXml);
+            target.Load(xml);
+            RssDocument rss = RssDocument.Load(target.RssXml);
             Assert.IsTrue(rss.Channel.Items.Count > 0);
         }
 
@@ -127,7 +124,7 @@ namespace RssToolkitUnitTest
 
             RssToolkitUnitTest.RssToolkit_Rss_RssAggregatorAccessor accessor = new RssToolkitUnitTest.RssToolkit_Rss_RssAggregatorAccessor(target);
             target.RssAggregationEvent +=new EventHandler<RssAggregationEventArgs>(target_RssAggregationEvent);
-            string invalidOpmlXmlUrl = @"<?xml version='1.0' encoding='ISO-8859-1'?>
+            string invalidOpmlXml = @"<?xml version='1.0' encoding='ISO-8859-1'?>
                                     <opml version='1.1'>
 	                                    <head>
 		                                    <title>mySubscriptions.opml</title>
@@ -148,10 +145,10 @@ namespace RssToolkitUnitTest
                                         </body>
                                     </opml>";
             isError = false;
-            target.LoadFromXml(invalidOpmlXmlUrl);
+            target.Load(invalidOpmlXml);
             Assert.IsTrue(isError);
             isError = false;
-            target.LoadFromXml(RssToolkitUnitTest.Utility.RssUtility.OpmlXml);
+            target.Load(RssToolkitUnitTest.Utility.RssUtility.OpmlXml);
             Assert.IsFalse(isError);
         }
 

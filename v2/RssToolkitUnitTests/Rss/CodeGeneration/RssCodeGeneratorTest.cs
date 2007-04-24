@@ -176,7 +176,7 @@ namespace RssToolkitUnitTest
             string url = RssUtility.RssUrl;
             RssToolkitUnitTest.RssToolkit_Rss_CodeGeneration_RssCodeGeneratorAccessor.GenerateLoadRss(rssType, url);
             Assert.IsTrue(rssType.Members.Count > 0);
-            Assert.Equals("LoadRss", rssType.Members[0].Name);
+            Assert.Equals("Load", rssType.Members[0].Name);
         }
 
         /// <summary>
@@ -189,7 +189,7 @@ namespace RssToolkitUnitTest
             CodeTypeDeclaration rssType = new CodeTypeDeclaration("TestRss");
             RssToolkitUnitTest.RssToolkit_Rss_CodeGeneration_RssCodeGeneratorAccessor.GenerateLoadRssByUrl(rssType);
             Assert.IsTrue(rssType.Members.Count > 0);
-            Assert.Equals("LoadRss", rssType.Members[0].Name);
+            Assert.Equals("Load", rssType.Members[0].Name);
         }
 
         /// <summary>
@@ -200,22 +200,9 @@ namespace RssToolkitUnitTest
         public void RssCodeGeneratorGenerateLoadRssByXmlDocumentTest()
         {
             CodeTypeDeclaration rssType = new CodeTypeDeclaration("TestRss");
-            RssToolkitUnitTest.RssToolkit_Rss_CodeGeneration_RssCodeGeneratorAccessor.GenerateLoadRssByXmlDocument(rssType);
+            RssToolkitUnitTest.RssToolkit_Rss_CodeGeneration_RssCodeGeneratorAccessor.GenerateLoadRssByXml(rssType);
             Assert.IsTrue(rssType.Members.Count > 0);
-            Assert.Equals("LoadRss", rssType.Members[0].Name);
-        }
-
-        /// <summary>
-        ///A test for GenerateLoadRssFromOpml (CodeTypeDeclaration)
-        ///</summary>
-        [DeploymentItem("RssToolkit.dll")]
-        [TestMethod()]
-        public void RssCodeGeneratorGenerateLoadRssFromOpmlTest()
-        {
-            CodeTypeDeclaration rssType = new CodeTypeDeclaration("TestRss");
-            RssToolkitUnitTest.RssToolkit_Rss_CodeGeneration_RssCodeGeneratorAccessor.GenerateLoadRssFromOpml(rssType);
-            Assert.IsTrue(rssType.Members.Count > 0);
-            Assert.Equals("LoadRssFromOpml", rssType.Members[0].Name);
+            Assert.Equals("Load", rssType.Members[0].Name);
         }
 
         /// <summary>
@@ -297,7 +284,7 @@ namespace RssToolkitUnitTest
             Assert.IsTrue(code.Length > 0);
             Assert.IsTrue(code.Contains("public class TestRss : RssToolkit.Rss.RssDocumentBase"));
             Assert.IsTrue(code.Contains("public TestChannel Channel"));
-            Assert.IsTrue(code.Contains("public static TestRss LoadRss(string url)"));
+            Assert.IsTrue(code.Contains("public static TestRss Load(System.Uri url)"));
             Assert.IsTrue(code.Contains("public class TestChannel"));
             Assert.IsTrue(code.Contains("public class TestHttpHandlerBase : RssToolkit.Rss.RssHttpHandlerBase<TestRss>"));
         }

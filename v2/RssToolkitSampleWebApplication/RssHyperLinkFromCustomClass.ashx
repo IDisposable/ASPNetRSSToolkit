@@ -10,6 +10,7 @@ public class RssHyperLinkFromCustomClass: Sample5HttpHandlerBase
     protected override void PopulateRss(string rssName, string userName)
     {
         Rss.Channel = new Sample5Channel();
+        
         Rss.Channel.Items = new List<Sample5Item>();
         if (!string.IsNullOrEmpty(rssName))
         {
@@ -20,6 +21,12 @@ public class RssHyperLinkFromCustomClass: Sample5HttpHandlerBase
         {
             Rss.Channel.Title += " (generated for " + userName + ")";
         }
+
+        Rss.Channel.Link = "~/scenario6.aspx";
+        Rss.Channel.Description = "Channel For Scenario6 in ASP.NET RSS Toolkit samples.";
+        Rss.Channel.Ttl = "10";
+        Rss.Channel.User = userName;
+
 
         Sample5Item item = new Sample5Item();
         item.Title = "CodeGeneratedClass";

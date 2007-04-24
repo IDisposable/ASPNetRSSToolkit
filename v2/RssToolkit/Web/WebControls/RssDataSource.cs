@@ -89,24 +89,7 @@ namespace RssToolkit.Web.WebControls
             {
                 if (_rss == null)
                 {
-                    _rss = new RssDocument();
-                    string outputXml;
-                    DocumentType type = RssXmlHelper.GetDocumentType(_url, out outputXml);
-                    switch (type)
-                    {
-                        case DocumentType.Rss:
-                            _rss.LoadFromXml(outputXml);
-                            break;
-                        case DocumentType.Opml:
-                            _rss.LoadFromOpmlXml(outputXml);
-                            break;
-                        case DocumentType.Atom:
-                            _rss.LoadFromXml(RssXmlHelper.ConvertToRss(DocumentType.Atom, outputXml));
-                            break;
-                        case DocumentType.Rdf:
-                            _rss.LoadFromXml(RssXmlHelper.ConvertToRss(DocumentType.Rdf, outputXml));
-                            break;
-                    }                        
+                    _rss = RssDocument.Load(new System.Uri(_url));
                 }
 
                 return _rss;

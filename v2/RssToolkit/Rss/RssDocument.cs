@@ -27,7 +27,6 @@ namespace RssToolkit.Rss
     {
         private string _version;
         private RssChannel _channel;
-        private string _url;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="RssDocument"/> class.
@@ -72,108 +71,45 @@ namespace RssToolkit.Rss
                 _channel = value;
             }
         }
-
-        /// <summary>
-        /// Gets the URL.
-        /// </summary>
-        /// <value>The URL.</value>
-        internal string Url
-        {
-            get 
-            {
-                return _url; 
-            }
-        }
         #endregion
-
-
-        /// <summary>
-        /// Loads from URL.
-        /// </summary>
-        /// <param name="url">The URL.</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings", MessageId = "0#")]
-        public void LoadFromUrl(string url) 
-        {
-            if (string.IsNullOrEmpty(url))
-            {
-                throw new ArgumentException(string.Format(Resources.RssToolkit.Culture, Resources.RssToolkit.ArgmentException, "url"));
-            }
-
-            // resolve app-relative URLs
-            url = RssXmlHelper.ResolveAppRelativeLinkToUrl(url);
-
-            // download the feed
-            string rssString = DownloadManager.GetFeed(url);
-            LoadFromXml(rssString);
-
-            //// remember the url
-            _url = url;
-        }
 
         /// <summary>
         /// Loads from XML.
         /// </summary>
         /// <param name="xml">The XML.</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter")]
-        public void LoadFromXml(string xml)
+        /// <returns>RssDocument</returns>
+        public static RssDocument Load(string xml)
         {
-            if (string.IsNullOrEmpty(xml))
-            {
-                throw new ArgumentException(string.Format(Resources.RssToolkit.Culture, Resources.RssToolkit.ArgmentException, "xml"));
-            }
-
-            RssDocument rss = RssXmlHelper.DeserializeFromXmlUsingStringReader<RssDocument>(xml);
-
-            LoadFromDom(rss);
+            return RssDocumentBase.Load<RssDocument>(xml);
         }
 
         /// <summary>
-        /// Loads the RSS from opml URL.
+        /// Loads the specified URL.
         /// </summary>
         /// <param name="url">The URL.</param>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings", MessageId = "0#")]
-        public void LoadFromOpmlUrl(string url)
+        /// <returns>RssDocument</returns>
+        public static RssDocument Load(System.Uri url)
         {
-            if (string.IsNullOrEmpty(url))
-            {
-                throw new ArgumentException(string.Format(Resources.RssToolkit.Culture, Resources.RssToolkit.ArgmentException, "url"));
-            }
-
-            // resolve app-relative URLs
-            url = RssXmlHelper.ResolveAppRelativeLinkToUrl(url);
-
-            RssAggregator aggregator = new RssAggregator();
-            aggregator.LoadFromUrl(url);
-            string rssXml = aggregator.RssXml;
-
-            LoadFromXml(rssXml);
+            return RssDocumentBase.Load<RssDocument>(url);
         }
 
         /// <summary>
-        /// Loads the RSS from opml XML.
+        /// Loads the specified reader.
         /// </summary>
-        /// <param name="xml">The XML.</param>
-        public void LoadFromOpmlXml(string xml)
+        /// <param name="reader">The reader.</param>
+        /// <returns>RssDocument</returns>
+        public static RssDocument Load(XmlReader reader)
         {
-            if (string.IsNullOrEmpty(xml))
-            {
-                throw new ArgumentException(string.Format(Resources.RssToolkit.Culture, Resources.RssToolkit.ArgmentException, "xml"));
-            }
-
-            RssAggregator aggregator = new RssAggregator();
-            aggregator.LoadFromXml(xml);
-            string rssXml = aggregator.RssXml;
-
-            LoadFromXml(rssXml);
+            return RssDocumentBase.Load<RssDocument>(reader);
         }
-
+        
         /// <summary>
         /// Coverts to DataSet
         /// </summary>
         /// <returns>DataSet</returns>
         public DataSet ToDataSet() 
         {
-            return RssXmlHelper.ToDataSet(ToXml());
+            return RssXmlHelper.ToDataSet(ToXml(DocumentType.Rss));
         }
 
         /// <summary>
@@ -236,19 +172,13 @@ namespace RssToolkit.Rss
         }
 
         /// <summary>
-        /// Converts To Xml
+        /// Returns Xml in the type specified by outputType
         /// </summary>
-        /// <returns>string</returns>
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1822:MarkMembersAsStatic")]
-        public override string ToXml()
+        /// <param name="ouputType">Type of the ouput.</param>
+        /// <returns></returns>
+        public override string ToXml(DocumentType outputType)
         {
-            return RssXmlHelper.ToXml<RssDocument>(this);
-        }
-
-        private void LoadFromDom<RssDocumentGeneric>(RssDocumentGeneric rss) where RssDocumentGeneric : RssDocument
-        {
-            this.Channel = rss.Channel;
-            this.Version = rss.Version;
+            return RssDocumentBase.ToXml<RssDocument>(outputType, this);
         }
     }
 }

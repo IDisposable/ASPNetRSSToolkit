@@ -62,9 +62,25 @@ namespace RssToolkit.Rss
             return stringBuilder.ToString();
         }
 
-        internal static void ParseChannelQueryString(HttpRequest request, out string channelName, out string userName)
+        internal static void ParseChannelQueryString(HttpRequest request, out string channelName, out string userName, out DocumentType outputType)
         {
             string ticket = request.QueryString["t"];
+
+            if (!string.IsNullOrEmpty(request.QueryString["outputtype"]))
+            {
+                try
+                {
+                    outputType = (DocumentType)Enum.Parse(typeof(DocumentType), request.QueryString["outputtype"], true);
+                }
+                catch
+                {
+                    outputType = DocumentType.Rss;
+                }
+            }
+            else
+            {
+                outputType = DocumentType.Rss;
+            }
 
             if (string.IsNullOrEmpty(ticket)) 
             {

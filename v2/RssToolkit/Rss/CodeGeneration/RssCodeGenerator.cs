@@ -69,7 +69,7 @@ namespace RssToolkit.Rss.CodeGeneration
         /// <param name="outputCode">The output code.</param>
         /// <param name="useBaseClass">if set to <c>true</c> [use base class].</param>
         public static void GenerateCode(
-            RssDocument rssDefinition,
+            RssDocumentBase rssDefinition,
             string outputLanguage, 
             string namespaceName, 
             string classNamePrefix,
@@ -101,7 +101,7 @@ namespace RssToolkit.Rss.CodeGeneration
                 throw new ArgumentNullException("outputCode");
             }
 
-            GenerateCode(rssDefinition.ToXml(), rssDefinition.Url, outputLanguage, namespaceName, classNamePrefix, outputCode, useBaseClass);
+            GenerateCode(rssDefinition.ToXml(DocumentType.Rss), rssDefinition.Url, outputLanguage, namespaceName, classNamePrefix, outputCode, useBaseClass);
         }
 
         /// <summary>
@@ -179,7 +179,7 @@ namespace RssToolkit.Rss.CodeGeneration
         /// <param name="outputCodeCompileUnit">The output code compile unit.</param>
         /// <param name="useBaseClass">if set to <c>true</c> [use base class].</param>
         public static void GenerateCodeDomTree(
-            RssDocument rssDefinition,
+            RssDocumentBase rssDefinition,
             string namespaceName, 
             string classNamePrefix,
             CodeCompileUnit outputCodeCompileUnit,
@@ -205,7 +205,7 @@ namespace RssToolkit.Rss.CodeGeneration
                 throw new ArgumentNullException("outputCodeCompileUnit");
             }
 
-            GenerateCodeDomTree(rssDefinition.ToXml(), rssDefinition.Url, namespaceName, classNamePrefix, outputCodeCompileUnit, useBaseClass);
+            GenerateCodeDomTree(rssDefinition.ToXml(DocumentType.Rss), rssDefinition.Url, namespaceName, classNamePrefix, outputCodeCompileUnit, useBaseClass);
         }
 
         /// <summary>
@@ -250,7 +250,8 @@ namespace RssToolkit.Rss.CodeGeneration
                 throw new ArgumentNullException("outputCodeCompileUnit.Namespaces");
             }
 
-            Dictionary<string, ClassInfo> classDictionary = RssCodeTreeGenerator.ConvertToDictionary(codeXml);
+            RssCodeTreeGenerator codeTree = new RssCodeTreeGenerator();
+            Dictionary<string, ClassInfo> classDictionary = codeTree.ConvertToDictionary(codeXml);
 
             // generate namespace
             CodeNamespace generatedNamespace = new CodeNamespace(namespaceName);
@@ -283,10 +284,10 @@ namespace RssToolkit.Rss.CodeGeneration
                             string itemTypeName = classNamePrefix + "Item";
                             
                             //// LoadRss (and LoadRssItems) method
-                            GenerateLoadRss(itemType, url);
+                            GenerateLoad(itemType, url);
                             GenerateLoadRssByUrl(itemType);
-                            GenerateLoadRssByXmlDocument(itemType);
-                            GenerateLoadRssFromOpml(itemType);
+                            GenerateLoadRssByXmlTextReader(itemType);
+                            GenerateLoadRssByXml(itemType);
                             GenerateLoadRssItems(itemType, itemTypeName);
                         }
 
@@ -310,12 +311,13 @@ namespace RssToolkit.Rss.CodeGeneration
                             property.IsAttribute ? XmlNodeType.Attribute : XmlNodeType.Element,
                             (classDictionary.ContainsKey(property.Name) && classDictionary[property.Name].Properties.Count > 0) ? new CodeTypeReference(propertyName) : new CodeTypeReference("System.String"),
                             itemType,
-                            property.Occurances > 1 ? true : false);
+                            property.Occurances > 1 ? true : false,
+                            (classDictionary.ContainsKey(property.Name) ? classDictionary[property.Name].Namespace : string.Empty));
                     }
 
                     if (classInfo.IsText)
                     {
-                        AddCodeProperty("Text", XmlNodeType.Text, new CodeTypeReference("System.String"), itemType, false);
+                        AddCodeProperty("Text", XmlNodeType.Text, new CodeTypeReference("System.String"), itemType, false, string.Empty);
                     }
                 }
             }
@@ -479,7 +481,8 @@ namespace RssToolkit.Rss.CodeGeneration
             XmlNodeType nodeType,
             CodeTypeReference propertyType,
             CodeTypeDeclaration classType,
-            bool collection)
+            bool collection,
+            string nameSpaceName)
         {
             string propertyVariableName = CodePrivateNameFromRssName(nodeName);
             string propertyName = CodeNameFromRssName(nodeName);
@@ -516,12 +519,11 @@ namespace RssToolkit.Rss.CodeGeneration
             {
                 cad = new CodeAttributeDeclaration("Xml" + nodeType.ToString());
             }
-            
-            ////if (node.LocalName != node.Name)
-            ////{
-            ////    string lookupName = node.Prefix == "xmlns" ? node.LocalName : node.Prefix;
-            ////    cad.Arguments.Add(new CodeAttributeArgument("Namespace", new CodePrimitiveExpression(_settings.XmlNamespaceManager.LookupNamespace(lookupName))));
-            ////}
+
+            if (!String.IsNullOrEmpty(nameSpaceName))
+            {
+                cad.Arguments.Add(new CodeAttributeArgument("Namespace", new CodePrimitiveExpression(nameSpaceName)));
+            }
 
             property.CustomAttributes.Add(cad);
 
@@ -531,35 +533,26 @@ namespace RssToolkit.Rss.CodeGeneration
             classType.Members.Add(property);
         }
 
-        private static void GenerateLoadRss(CodeTypeDeclaration channelType, string url)
+        private static void GenerateLoad(CodeTypeDeclaration channelType, string url)
         {
-            string varName = "rss";
+            string varName = "doc";
             string typeName = channelType.Name;
 
             CodeMemberMethod m = new CodeMemberMethod();
-            m.Name = "LoadRss";
+            m.Name = "Load";
             m.Attributes &= ~MemberAttributes.AccessMask;
             m.Attributes |= MemberAttributes.Public | MemberAttributes.Static;
             m.ReturnType = new CodeTypeReference(typeName);
 
             m.Statements.Add(new CodeVariableDeclarationStatement(typeName, varName));
 
-            ////m.Statements.Add(new CodeAssignStatement(
-            ////    new CodeVariableReferenceExpression(varName),
-            ////    new CodeObjectCreateExpression(typeName)));
-
-            ////m.Statements.Add(new CodeMethodInvokeExpression(
-            ////    new CodeVariableReferenceExpression(varName),
-            ////    "LoadFromUrl<" + typeName + ">",
-            ////    new CodeExpression[1] { new CodePrimitiveExpression(url) }));
-
             m.Statements.Add(
                 new CodeAssignStatement(
                 new CodeVariableReferenceExpression(varName),
                 new CodeMethodInvokeExpression(
                     new CodeVariableReferenceExpression(typeName),
-                    "LoadRss",
-                    new CodeExpression[1] { new CodePrimitiveExpression(url) })));
+                    "Load",
+                    new CodeExpression[1] { new CodeObjectCreateExpression( "System.Uri", new CodeExpression[1] {new CodePrimitiveExpression(url) })})));
 
             m.Statements.Add(new CodeMethodReturnStatement(new CodeVariableReferenceExpression(varName)));
 
@@ -573,16 +566,17 @@ namespace RssToolkit.Rss.CodeGeneration
             CodeMemberMethod m = new CodeMemberMethod();
             m.Name = "ToXml";
             m.Attributes = MemberAttributes.Override | MemberAttributes.Public;
+            m.Parameters.Add(new CodeParameterDeclarationExpression(typeof(DocumentType), "outputType"));
             m.ReturnType = new CodeTypeReference("System.String");
 
             m.Statements.Add(
                 new CodeMethodReturnStatement(
                 new CodeMethodInvokeExpression(
                             new CodeMethodReferenceExpression(
-                            null, 
-                            "RssXmlHelper.ToXml",
+                            null,
+                            "RssDocumentBase.ToXml",
                             new CodeTypeReference[1] { new CodeTypeReference(typeName) }),
-                            new CodeExpression[1] { new CodeThisReferenceExpression() })));
+                            new CodeExpression[2] { new CodeArgumentReferenceExpression("outputType"), new CodeThisReferenceExpression() })));
 
             channelType.Members.Add(m);
         }
@@ -597,21 +591,21 @@ namespace RssToolkit.Rss.CodeGeneration
             m.Statements.Add(new CodeMethodReturnStatement(
                 new CodeMethodInvokeExpression(
                             new CodeMethodReferenceExpression(null, "RssXmlHelper.ToDataSet"),
-                new CodeExpression[1] { new CodeArgumentReferenceExpression("ToXml()") })));
+                new CodeExpression[1] { new CodeArgumentReferenceExpression("ToXml(DocumentType.Rss)") })));
 
             channelType.Members.Add(m);
         }
 
         private static void GenerateLoadRssByUrl(CodeTypeDeclaration channelType)
         {
-            string varName = "rss";
+            string varName = "doc";
             string typeName = channelType.Name;
 
             CodeMemberMethod m = new CodeMemberMethod();
-            m.Name = "LoadRss";
+            m.Name = "Load";
             m.Attributes &= ~MemberAttributes.AccessMask;
             m.Attributes |= MemberAttributes.Public | MemberAttributes.Static;
-            m.Parameters.Add(new CodeParameterDeclarationExpression(typeof(string), "url"));
+            m.Parameters.Add(new CodeParameterDeclarationExpression(typeof(System.Uri), "url"));
             m.ReturnType = new CodeTypeReference(typeName);
 
             ////Create if Statement
@@ -619,22 +613,25 @@ namespace RssToolkit.Rss.CodeGeneration
                 new CodeObjectCreateExpression(
                 new CodeTypeReference(typeof(System.ArgumentNullException)),
                 new CodeExpression[] { }));
-            
-            CodeConditionStatement codecondition = new CodeConditionStatement(new CodeSnippetExpression("String.IsNullOrEmpty(url)"), throwException);
-            m.Statements.Add(codecondition);
+
+            CodeConditionStatement instanceCondition = new CodeConditionStatement();
+
+            CodeBinaryOperatorExpression ifCondition = new CodeBinaryOperatorExpression();
+            ifCondition.Left = new CodeVariableReferenceExpression("url");
+            ifCondition.Right = new CodePrimitiveExpression(null);
+            ifCondition.Operator = CodeBinaryOperatorType.ValueEquality;
+            instanceCondition.Condition = ifCondition;
+            instanceCondition.TrueStatements.Add(throwException);
+            m.Statements.Add(instanceCondition);             
             
             m.Statements.Add(new CodeVariableDeclarationStatement(typeName, varName));
             m.Statements.Add(new CodeAssignStatement(
                             new CodeVariableReferenceExpression(varName),
                             new CodeMethodInvokeExpression(
-                            new CodeMethodReferenceExpression(null, "RssXmlHelper.DeserializeFromXmlUsingStringReader",
+                            new CodeMethodReferenceExpression(null, "RssDocumentBase.Load",
                             new CodeTypeReference[1] { 
                                 new CodeTypeReference(typeName) }),
-                                new CodeExpression[1] { 
-                                new CodeMethodInvokeExpression(
-                                new CodeVariableReferenceExpression("DownloadManager"),
-                                "GetFeed",
-                                new CodeExpression[1] { new CodeArgumentReferenceExpression("url") })})));
+                                new CodeExpression[1] { new CodeArgumentReferenceExpression("url") })));
 
             m.Statements.Add(new CodeMethodReturnStatement(
                 new CodeVariableReferenceExpression(varName)));
@@ -642,16 +639,52 @@ namespace RssToolkit.Rss.CodeGeneration
             channelType.Members.Add(m);
         }
 
-        private static void GenerateLoadRssByXmlDocument(CodeTypeDeclaration channelType)
+        private static void GenerateLoadRssByXml(CodeTypeDeclaration channelType)
         {
-            string varName = "rss";
+            string varName = "doc";
             string typeName = channelType.Name;
 
             CodeMemberMethod m = new CodeMemberMethod();
-            m.Name = "LoadRss";
+            m.Name = "Load";
             m.Attributes &= ~MemberAttributes.AccessMask;
             m.Attributes |= MemberAttributes.Public | MemberAttributes.Static;
-            m.Parameters.Add(new CodeParameterDeclarationExpression(typeof(XmlDocument), "doc"));
+            m.Parameters.Add(new CodeParameterDeclarationExpression(typeof(string), "xml"));
+            m.ReturnType = new CodeTypeReference(typeName);
+
+            ////Create if Statement
+            CodeThrowExceptionStatement throwException = new CodeThrowExceptionStatement(
+                new CodeObjectCreateExpression(
+                new CodeTypeReference(typeof(System.ArgumentNullException)),
+                new CodeExpression[] { }));
+
+            CodeConditionStatement codecondition = new CodeConditionStatement(new CodeSnippetExpression("String.IsNullOrEmpty(xml)"), throwException);
+            m.Statements.Add(codecondition);
+
+            m.Statements.Add(new CodeVariableDeclarationStatement(typeName, varName));
+            m.Statements.Add(new CodeAssignStatement(
+                            new CodeVariableReferenceExpression(varName),
+                            new CodeMethodInvokeExpression(
+                            new CodeMethodReferenceExpression(null, "RssDocumentBase.Load",
+                            new CodeTypeReference[1] { 
+                                new CodeTypeReference(typeName) }),
+                                new CodeExpression[1] { new CodeArgumentReferenceExpression("xml") })));
+
+            m.Statements.Add(new CodeMethodReturnStatement(
+                new CodeVariableReferenceExpression(varName)));
+
+            channelType.Members.Add(m);
+        }
+
+        private static void GenerateLoadRssByXmlTextReader(CodeTypeDeclaration channelType)
+        {
+            string varName = "doc";
+            string typeName = channelType.Name;
+
+            CodeMemberMethod m = new CodeMemberMethod();
+            m.Name = "Load";
+            m.Attributes &= ~MemberAttributes.AccessMask;
+            m.Attributes |= MemberAttributes.Public | MemberAttributes.Static;
+            m.Parameters.Add(new CodeParameterDeclarationExpression(typeof(XmlTextReader), "reader"));
             m.ReturnType = new CodeTypeReference(typeName);
             
             ////Create if Statement
@@ -663,7 +696,7 @@ namespace RssToolkit.Rss.CodeGeneration
             CodeConditionStatement instanceCondition = new CodeConditionStatement();
 
             CodeBinaryOperatorExpression ifCondition = new CodeBinaryOperatorExpression();
-            ifCondition.Left = new CodeVariableReferenceExpression("doc");
+            ifCondition.Left = new CodeVariableReferenceExpression("reader");
             ifCondition.Right = new CodePrimitiveExpression(null);
             ifCondition.Operator = CodeBinaryOperatorType.ValueEquality;
             instanceCondition.Condition = ifCondition;
@@ -674,37 +707,9 @@ namespace RssToolkit.Rss.CodeGeneration
                 new CodeAssignStatement(
                             new CodeVariableReferenceExpression(varName),
                             new CodeMethodInvokeExpression(
-                            new CodeMethodReferenceExpression(null, "RssXmlHelper.DeserializeFromXmlUsingStringReader",
+                            new CodeMethodReferenceExpression(null, "RssDocumentBase.Load",
                             new CodeTypeReference[1] { new CodeTypeReference(typeName) }),
-                            new CodeExpression[1] { new CodeArgumentReferenceExpression("doc.OuterXml") })));
-
-            m.Statements.Add(new CodeMethodReturnStatement(
-                new CodeVariableReferenceExpression(varName)));
-
-            channelType.Members.Add(m);
-        }
-
-        private static void GenerateLoadRssFromOpml(CodeTypeDeclaration channelType)
-        {
-            string varName = "rss";
-            string typeName = channelType.Name;
-
-            CodeMemberMethod m = new CodeMemberMethod();
-            m.Name = "LoadRssFromOpml";
-            m.Attributes &= ~MemberAttributes.AccessMask;
-            m.Attributes |= MemberAttributes.Public | MemberAttributes.Static;
-            m.Parameters.Add(new CodeParameterDeclarationExpression(typeof(string), "url"));
-            m.ReturnType = new CodeTypeReference(typeName);
-
-            m.Statements.Add(new CodeVariableDeclarationStatement(typeName, varName));
-
-            m.Statements.Add(
-                new CodeAssignStatement(
-                            new CodeVariableReferenceExpression(varName),
-                            new CodeMethodInvokeExpression(
-                            new CodeMethodReferenceExpression(null, "RssXmlHelper.LoadRssFromOpmlUrl",
-                            new CodeTypeReference[1] { new CodeTypeReference(typeName) }),
-                            new CodeExpression[1] { new CodeArgumentReferenceExpression("url") })));
+                            new CodeExpression[1] { new CodeArgumentReferenceExpression("reader") })));
 
             m.Statements.Add(new CodeMethodReturnStatement(
                 new CodeVariableReferenceExpression(varName)));
@@ -726,7 +731,7 @@ namespace RssToolkit.Rss.CodeGeneration
                 new CodeMethodReturnStatement(
                 new CodePropertyReferenceExpression(
                     new CodeMethodInvokeExpression(
-                    new CodeMethodReferenceExpression(null, "LoadRss", null)),
+                    new CodeMethodReferenceExpression(null, "Load", null)),
                     "Channel.Items")));
 
             channelType.Members.Add(m);

@@ -43,32 +43,8 @@ namespace RssToolkit
             string codeString;
             try 
             {
-                string output;
-                DocumentType version = RssXmlHelper.GetDocumentType(url, out output);
-                if (string.IsNullOrEmpty(output))
-                {
-                    throw new Exception("Invalid Url");
-                }
-
-                switch (version)
-                {
-                    case DocumentType.Rss:
-                        codeString = output;
-                        break;
-                    case DocumentType.Opml:
-                        RssAggregator aggregator = new RssAggregator();
-                        aggregator.LoadFromXml(output);
-                        codeString = aggregator.RssXml;
-                        break;
-                    case DocumentType.Atom:
-                        codeString = RssXmlHelper.ConvertToRss(DocumentType.Atom, output);
-                        break;
-                    case DocumentType.Rdf:
-                        codeString = RssXmlHelper.ConvertToRss(DocumentType.Rdf, output);
-                        break;
-                    default:
-                        throw new Exception("The url is not a Rss or Opml File");
-                }
+                RssDocument rss = RssDocument.Load(new System.Uri(url));
+                codeString = rss.ToXml(DocumentType.Rss);
             }
             catch (Exception e) 
             {

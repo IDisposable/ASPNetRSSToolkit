@@ -9,10 +9,6 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>RssToolkit</RootNamespace>
     <AssemblyName>RssToolkit</AssemblyName>
-    <SccProjectName>SAK</SccProjectName>
-    <SccLocalPath>SAK</SccLocalPath>
-    <SccAuxPath>SAK</SccAuxPath>
-    <SccProvider>SAK</SccProvider>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -42,6 +38,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="Opml\OpmlBody.cs" />
     <Compile Include="Opml\OpmlDocument.cs" />
     <Compile Include="Opml\OpmlHead.cs" />
@@ -107,7 +104,18 @@
     <EmbeddedResource Include="Resources\RdfToRss20.xsl" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Resources\Rss20.xsd" />
+    <EmbeddedResource Include="Resources\Rss20.xsd">
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Rss20ToAtom.xsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Rss20ToRdf.xsl" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Rss20ToOpml.xsl" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

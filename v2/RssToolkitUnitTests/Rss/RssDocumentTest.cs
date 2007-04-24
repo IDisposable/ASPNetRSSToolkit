@@ -81,7 +81,7 @@ namespace RssToolkitUnitTest
         {
             foreach (string url in RssUtility.RssUrls)
             {
-                rss.LoadFromUrl(url);
+                rss = RssDocument.Load(new System.Uri(url));
                 Assert.IsTrue(rss.Channel.Items.Count > 0);
             }
         }
@@ -92,6 +92,8 @@ namespace RssToolkitUnitTest
         [TestMethod()]
         public void RssDocumentChannelTest()
         {
+            rss = RssToolkitUnitTest.Utility.RssUtility.GetRssDocumentFromXml();
+
             Assert.AreEqual(rss.Channel.Categories[0].Domain, "http://www.microsoft.com");
             Assert.AreEqual(rss.Channel.Categories[1].Domain, "http://www.yahoo.com");
             Assert.AreEqual(rss.Channel.Categories[0].Text, "MSFT");
@@ -152,7 +154,7 @@ namespace RssToolkitUnitTest
         public void RssDocumentLoadRssTest()
         {
             RssDocument actual = RssUtility.GetRssDocumentFromUrl();
-            Assert.IsTrue(actual.Channel.Items.Count > 0, "RssToolkit.Rss.RssDocument.LoadRss did not return the expected value.");
+            Assert.IsTrue(actual.Channel.Items.Count > 0, "RssToolkit.Rss.RssDocument.Load did not return the expected value.");
         }
 
         /// <summary>
@@ -162,7 +164,7 @@ namespace RssToolkitUnitTest
         public void RssDocumentLoadRssFromOpmlTest()
         {
             RssDocument actual = RssUtility.GetRssDocumentFromOpmlUrl();
-            Assert.IsTrue(actual.Channel.Items.Count > 0, "RssToolkit.Rss.RssDocument.LoadRssFromOpml did not return the expected value.");
+            Assert.IsTrue(actual.Channel.Items.Count > 0, "RssToolkit.Rss.RssDocument.Load did not return the expected value.");
         }
 
         /// <summary>
@@ -172,7 +174,7 @@ namespace RssToolkitUnitTest
         public void RssDocumentLoadRssFromOpmlXmlTest()
         {
             RssDocument actual = RssUtility.GetRssDocumentFromOpmlXml();
-            Assert.IsTrue(actual.Channel.Items.Count > 0, "RssToolkit.Rss.RssDocument.LoadRssFromOpmlXml did not return the expected value.");            
+            Assert.IsTrue(actual.Channel.Items.Count > 0, "RssToolkit.Rss.RssDocument.Load did not return the expected value.");            
         }
 
         /// <summary>
@@ -182,7 +184,7 @@ namespace RssToolkitUnitTest
         public void RssDocumentLoadRssFromXmlTest()
         {
             RssDocument actual = RssUtility.GetRssDocumentFromXml();
-            Assert.IsTrue(actual.Channel.Items.Count > 0, "RssToolkit.Rss.RssDocument.LoadRssFromXml did not return the expected value.");
+            Assert.IsTrue(actual.Channel.Items.Count > 0, "RssToolkit.Rss.RssDocument.Load did not return the expected value.");
         }
 
         /// <summary>
@@ -241,16 +243,30 @@ namespace RssToolkitUnitTest
         }
 
         /// <summary>
-        ///A test for ToXml&lt;&gt; (RssDocumentGeneric)
+        ///A test for ToXml
         ///</summary>
         [TestMethod()]
         public void RssDocumentToXmlTest()
         {
             RssDocument rss = RssUtility.GetRssDocumentFromUrl();
-            string xml = rss.ToXml();
+            string xml = rss.ToXml(DocumentType.Rss);
             XmlDocument doc = new XmlDocument();
             doc.LoadXml(xml);
             Assert.IsTrue(doc.SelectNodes("/rss/channel/item").Count > 0, "RssToolkit.Rss.RssDocument.ToXml did not return the expected value.");
+            Assert.IsTrue(doc.SelectSingleNode("/rss/channel/title").InnerText.Length > 0, "RssToolkit.Rss.RssDocument.ToXml did not return the expected value.");
+            Assert.IsTrue(doc.SelectSingleNode("/rss/channel/item/title").InnerText.Length > 0, "RssToolkit.Rss.RssDocument.ToXml did not return the expected value.");
+
+            xml = rss.ToXml(DocumentType.Atom);
+            doc.LoadXml(xml);
+            Assert.IsTrue(doc.SelectNodes("/feed/entry").Count > 0, "RssToolkit.Rss.RssDocument.ToXml did not return the expected value.");
+            Assert.IsTrue(doc.SelectSingleNode("/feed/title").InnerText.Length > 0, "RssToolkit.Rss.RssDocument.ToXml did not return the expected value.");
+            Assert.IsTrue(doc.SelectSingleNode("/feed/entry/summary").InnerText.Length > 0, "RssToolkit.Rss.RssDocument.ToXml did not return the expected value.");
+
+            xml = rss.ToXml(DocumentType.Rdf);
+            doc.LoadXml(xml);
+            Assert.IsTrue(doc.SelectNodes("/rdf/item").Count > 0, "RssToolkit.Rss.RssDocument.ToXml did not return the expected value.");
+            Assert.IsTrue(doc.SelectSingleNode("/rdf/channel/title").InnerText.Length > 0, "RssToolkit.Rss.RssDocument.ToXml did not return the expected value.");
+            Assert.IsTrue(doc.SelectSingleNode("/rdf/item/title").InnerText.Length > 0, "RssToolkit.Rss.RssDocument.ToXml did not return the expected value.");
         }
 
         /// <summary>
