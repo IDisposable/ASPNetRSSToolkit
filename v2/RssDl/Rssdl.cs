@@ -43,8 +43,13 @@ namespace RssToolkit
             string codeString;
             try 
             {
-                RssDocument rss = RssDocument.Load(new System.Uri(url));
-                codeString = rss.ToXml(DocumentType.Rss);
+                using (Stream feedStream = DownloadManager.GetFeed(url))
+                {
+                    using (XmlTextReader reader = new XmlTextReader(feedStream))
+                    {
+                        codeString = RssXmlHelper.ConvertToRssXml(reader);
+                    }
+                }
             }
             catch (Exception e) 
             {

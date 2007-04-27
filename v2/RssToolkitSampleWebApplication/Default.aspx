@@ -16,6 +16,7 @@
             </li>
             <li><a href="CodeGeneratedClass.aspx"><span style="font-family: Courier New">Consuming RSS feed programmatically using strongly
                 typed classes</span></a></li>
+            <li><a href="MediaRss.aspx"><span style="font-family: Courier New">Consuming RSS feed programmatically using strongly typed classes with Extensions</span></a></li>
             <li><span style="font-family: Courier New"><a href="Opml.aspx">Using OPML Files to aggregate
                 and produce one feed</a></span></li>
             <li><span><span></span><span style="font-family: Courier New"><a href="RssDataSource.aspx">
