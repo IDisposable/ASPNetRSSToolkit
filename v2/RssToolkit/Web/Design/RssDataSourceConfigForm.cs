@@ -1,6 +1,6 @@
 /*=======================================================================
   Copyright (C) Microsoft Corporation.  All rights reserved.
- 
+
   THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
   KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
   IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
@@ -22,7 +22,7 @@ namespace RssToolkit.Web.Design
     /// <summary>
     /// WinForm dialog to configure RSS data source 
     /// </summary>
-    internal partial class RssDataSourceConfigForm : Form 
+    internal partial class RssDataSourceConfigForm : Form
     {
         private static List<string> _history = new List<string>();
         private RssDataSource _dataSource;
@@ -36,10 +36,10 @@ namespace RssToolkit.Web.Design
             _dataSource = dataSource;
             InitializeComponent();
 
-            AddToHistory(dataSource.Url);
-
             lock (_history)
             {
+                AddToHistory(dataSource.Url);
+
                 foreach (string url in _history)
                 {
                     urlComboBox.Items.Add(url);
@@ -49,25 +49,22 @@ namespace RssToolkit.Web.Design
             urlComboBox.Text = dataSource.Url;
         }
 
-        private static void AddToHistory(string url) 
+        private static void AddToHistory(string url)
         {
-            if (string.IsNullOrEmpty(url)) 
+            if (string.IsNullOrEmpty(url))
             {
                 return;
             }
 
-            lock (_history) 
+            foreach (string s in _history)
             {
-                foreach (string s in _history) 
+                if (url == s)
                 {
-                    if (url == s) 
-                    {
-                        return;
-                    }
+                    return;
                 }
-
-                _history.Insert(0, url);
             }
+
+            _history.Insert(0, url);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1804:RemoveUnusedLocals", MessageId = "rss"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Usage", "CA2201:DoNotRaiseReservedExceptionTypes"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1303:DoNotPassLiteralsAsLocalizedParameters", MessageId = "System.Windows.Forms.MessageBox.Show(System.Windows.Forms.IWin32Window,System.String,System.String,System.Windows.Forms.MessageBoxButtons,System.Windows.Forms.MessageBoxIcon)"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Globalization", "CA1300:SpecifyMessageBoxOptions")]
@@ -75,14 +72,17 @@ namespace RssToolkit.Web.Design
         {
             string url = urlComboBox.Text;
 
-            if (url != _dataSource.Url) 
+            if (url != _dataSource.Url)
             {
-                try 
+                try
                 {
                     RssDocument rss = RssDocument.Load(new System.Uri(url));
-                    AddToHistory(url);
+                    lock (_history)
+                    {
+                        AddToHistory(url);
+                    }
                 }
-                catch 
+                catch
                 {
                     MessageBox.Show(this, "Failed to load RSS feed for the specified URL", "RssDataSource Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     return;
