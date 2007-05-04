@@ -113,26 +113,22 @@ namespace RssToolkit.Rss
                 throw new ArgumentNullException("url");
             }
 
-            string rssUrl = url.ToString();
-            
-            T rss = null;
-
             // resolve app-relative URLs
-            rssUrl = RssXmlHelper.ResolveAppRelativeLinkToUrl(rssUrl);
+            string rssUrl = RssXmlHelper.ResolveAppRelativeLinkToUrl(url.ToString());
 
             // download the feed
             using (Stream cachedXml = DownloadManager.GetFeed(rssUrl))
             {
                 using (XmlTextReader reader = new XmlTextReader(cachedXml))
                 {
-                    rss = Load<T>(reader);
+                    T rss = Load<T>(reader);
+
+                    //// remember the url
+                    rss.Url = rssUrl;
+
+                    return rss;
                 }
             }
-
-            //// remember the url
-            rss.Url = rssUrl;
-
-            return rss;
         }
 
         /// <summary>
