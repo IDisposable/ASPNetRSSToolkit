@@ -174,7 +174,7 @@ namespace RssToolkit.Rss
         /// <summary>
         /// Returns Xml in the type specified by outputType
         /// </summary>
-        /// <param name="ouputType">Type of the ouput.</param>
+        /// <param name="ouputType">Type of the output.</param>
         /// <returns></returns>
         public override string ToXml(DocumentType outputType)
         {
