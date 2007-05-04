@@ -1,6 +1,6 @@
 /*=======================================================================
   Copyright (C) Microsoft Corporation.  All rights reserved.
- 
+
   THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
   KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
   IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
@@ -18,8 +18,8 @@ namespace RssToolkit.Opml
     /// </summary>
     internal class OutlineInfo
     {
-        private OpmlOutline outline;
-        private int index;
+        private readonly OpmlOutline outline;
+        private readonly int index;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="OutlineInfo"/> class.
@@ -38,7 +38,7 @@ namespace RssToolkit.Opml
         }
 
         /// <summary>
-        /// Gets or sets the outline.
+        /// Gets the outline.
         /// </summary>
         /// <value>The outline.</value>
         public OpmlOutline Outline
@@ -50,7 +50,7 @@ namespace RssToolkit.Opml
         }
 
         /// <summary>
-        /// Gets or sets the index.
+        /// Gets the index.
         /// </summary>
         /// <value>The index.</value>
         public int Index
