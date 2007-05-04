@@ -1,6 +1,6 @@
 /*=======================================================================
   Copyright (C) Microsoft Corporation.  All rights reserved.
- 
+
   THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
   KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
   IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
@@ -131,20 +131,9 @@ namespace RssToolkit.Web.Design
                     {
                         return base.Schema;
                     }
-                    //// create a datatable and infer schema from there
+
+                    //// create a DataTable and infer schema from there
                     DataTable dt = rss.ToDataSet().Tables["item"];
-
-                    ////DataTable dt = new DataTable("items");
-                    ////dt.Locale = System.Globalization.CultureInfo.InvariantCulture;
-                    ////if (rss.Channel != null && rss.Channel.Items != null)
-                    ////{
-                    ////    IDictionary<string, string> itemAttributes = rss.Channel.Items[0].Attributes;
-                    ////    foreach (KeyValuePair<string, string> a in itemAttributes)
-                    ////    {
-                    ////        dt.Columns.Add(a.Key);
-                    ////    }
-                    ////}
-
                     return new DataSetViewSchema(dt);
                 }
             }
