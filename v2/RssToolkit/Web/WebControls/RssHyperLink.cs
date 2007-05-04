@@ -61,7 +61,7 @@ namespace RssToolkit.Web.WebControls
         }
 
         /// <summary>
-        /// Gets or sets a value indicating whether torender standard image].
+        /// Gets or sets a value indicating whether to render standard image].
         /// </summary>
         /// <value><c>true</c> if [render standard image]; otherwise, <c>false</c>.</value>
         public bool RenderStandardImage
