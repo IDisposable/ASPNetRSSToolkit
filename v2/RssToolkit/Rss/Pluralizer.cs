@@ -1,6 +1,6 @@
 /*=======================================================================
   Copyright (C) Microsoft Corporation.  All rights reserved.
- 
+
   THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
   KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
   IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
@@ -24,7 +24,6 @@ namespace RssToolkit
         static List<SuffixRule> _suffixRules;
 
         #region Special Words Table
-
         private static string[] _specialWordsStringTable = new string[] 
         {
             "agendum",          "agenda",           "",
@@ -116,11 +115,9 @@ namespace RssToolkit
             "vertex",           "vertices",         "vertexes",
             "vortex",           "vortices",         "vortexes",
         };
-
         #endregion
 
         #region Suffix Rules Table
-
         private static string[] _suffixRulesStringTable = new string[] 
         {
             "ch",       "ches",
@@ -173,14 +170,13 @@ namespace RssToolkit
             "life",     "lives",
             "wife",     "wives",
         };
-
         #endregion
 
         #region public APIs
-
         /// <summary>
         /// Initializes the <see cref="Pluralizer"/> class.
         /// </summary>
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1810:InitializeReferenceTypeStaticFieldsInline")]
         static Pluralizer()
         {
             // populate lookup tables for special words
@@ -198,7 +194,7 @@ namespace RssToolkit
                     p = s;
                 }
 
-                Word w = new Word(s, p, p2);
+                Word w = new Word(s, p);
 
                 _specialSingulars.Add(s, w);
                 _specialPlurals.Add(p, w);
@@ -221,20 +217,20 @@ namespace RssToolkit
         }
 
         /// <summary>
-        /// Toes the plural.
+        /// Converts to the plural.
         /// </summary>
-        /// <param name="noun">The noun.</param>
-        /// <returns>string</returns>
+        /// <param name="noun">The word.</param>
+        /// <returns>plural form of the word</returns>
         public static string ToPlural(string noun)
         {
             return AdjustCase(ToPluralInternal(noun), noun);
         }
 
         /// <summary>
-        /// Toes the singular.
+        /// Converts to the singular.
         /// </summary>
-        /// <param name="noun">The noun.</param>
-        /// <returns>string</returns>
+        /// <param name="noun">The word.</param>
+        /// <returns>singular form of the word</returns>
         public static string ToSingular(string noun)
         {
             return AdjustCase(ToSingularInternal(noun), noun);
@@ -252,11 +248,9 @@ namespace RssToolkit
         {
             return String.Compare(ToSingularInternal(plural), singular, StringComparison.OrdinalIgnoreCase) == 0;
         }
-
         #endregion
 
         #region Implementation Details
-
         private static string ToPluralInternal(string s)
         {
             if (string.IsNullOrEmpty(s))
@@ -273,10 +267,9 @@ namespace RssToolkit
             }
 
             // apply suffix rules
-            string plural;
-
             foreach (SuffixRule rule in _suffixRules)
             {
+                string plural;
                 if (rule.TryToPlural(s, out plural))
                 {
                     return plural;
@@ -303,10 +296,9 @@ namespace RssToolkit
             }
 
             // apply suffix rules
-            string singular;
-
             foreach (SuffixRule rule in _suffixRules)
             {
+                string singular;
                 if (rule.TryToSingular(s, out singular))
                 {
                     return singular;
@@ -339,7 +331,8 @@ namespace RssToolkit
             {
                 if (Char.IsUpper(template[i]))
                 {
-                    if (i == 0) firstUpper = true;
+                    if (i == 0)
+                        firstUpper = true;
                     allLower = false;
                     foundUpperOrLower = true;
                 }
@@ -372,7 +365,6 @@ namespace RssToolkit
 
             return s;
         }
-
         #endregion
 
         /// <summary>
@@ -380,8 +372,8 @@ namespace RssToolkit
         /// </summary>
         private class SuffixRule
         {
-            private string _singularSuffix;
-            private string _pluralSuffix;
+            private readonly string _singularSuffix;
+            private readonly string _pluralSuffix;
 
             /// <summary>
             /// Initializes a new instance of the <see cref="SuffixRule"/> class.
@@ -471,18 +463,12 @@ namespace RssToolkit
             internal readonly string Plural;
 
             /// <summary>
-            /// String representing Plural2
-            /// </summary>
-            [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Performance", "CA1823:AvoidUnusedPrivateFields")]
-            internal readonly string Plural2;
-
-            /// <summary>
             /// Initializes a new instance of the <see cref="Word"/> class.
             /// </summary>
             /// <param name="singular">The singular.</param>
             /// <param name="plural">The plural.</param>
             /// <param name="plural2">The plural2.</param>
-            public Word(string singular, string plural, string plural2)
+            public Word(string singular, string plural)
             {
                 if (singular == null)
                 {
@@ -494,14 +480,8 @@ namespace RssToolkit
                     throw new ArgumentNullException("plural");
                 }
 
-                if (plural2 == null)
-                {
-                    throw new ArgumentNullException("plural2");
-                }
-
                 Singular = singular;
                 Plural = plural;
-                Plural2 = plural2;
             }
         }
     }
