@@ -51,6 +51,7 @@
     <Compile Include="Opml\OpmlHeadTest.cs" />
     <Compile Include="Opml\OpmlOutlineTest.cs" />
     <Compile Include="Opml\OutlineInfoTest.cs" />
+    <Compile Include="Rss\CodeGeneration\RssItemTest.cs" />
     <Compile Include="Rss\CodeGeneration\PropertyInfoTest.cs" />
     <Compile Include="Rss\CodeGeneration\RssCodeGeneratorTest.cs" />
     <Compile Include="Rss\DownloadManagerTest.cs" />
@@ -63,7 +64,6 @@
     <Compile Include="Rss\RssEnclosureTest.cs" />
     <Compile Include="Rss\RssGuidTest.cs" />
     <Compile Include="Rss\RssImageTest.cs" />
-    <Compile Include="Rss\CodeGeneration\RssItemTest.cs" />
     <Compile Include="Rss\RssSkipDaysTest.cs" />
     <Compile Include="Rss\RssSkipHoursTest.cs" />
     <Compile Include="Rss\RssSourceTest.cs" />
@@ -81,8 +81,6 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
-    <Folder Include="temp\" />
-    <Folder Include="Web\WebControls\" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
 </Project>
