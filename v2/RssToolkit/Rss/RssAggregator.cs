@@ -1,6 +1,6 @@
 /*=======================================================================
   Copyright (C) Microsoft Corporation.  All rights reserved.
- 
+
   THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
   KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
   IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
@@ -11,6 +11,7 @@ using System;
 using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Reflection;
@@ -101,7 +102,7 @@ namespace RssToolkit.Rss
 
         private void LoadRssFeeds(OpmlDocument opmlDocument)
         {
-            List<OpmlOutline> outlines = opmlDocument.Body.Outlines;
+            IList<OpmlOutline> outlines = opmlDocument.Body.Outlines;
             for (int index = 0; index < outlines.Count; index++)
             {
                 if (rssEvents[index] == null)
@@ -156,21 +157,23 @@ namespace RssToolkit.Rss
 
                 if (!string.IsNullOrEmpty(xmlString))
                 {
-                    lock (aggregateRss)
+                    RssXmlSchemaValidator validator = new RssXmlSchemaValidator();
+                    Assembly assembly = Assembly.GetExecutingAssembly();
+                    using (Stream stream = assembly.GetManifestResourceStream(Constants.Rss20Xsd))
                     {
-                        RssXmlSchemaValidator validator = new RssXmlSchemaValidator();
-                        Assembly assembly = Assembly.GetExecutingAssembly();
-                        using (Stream stream = assembly.GetManifestResourceStream(Constants.Rss20Xsd))
+                        lock (aggregateRss)
                         {
                             validator.ValidXmlDoc(xmlString, new XmlTextReader(stream));
+
                             if (validator.IsValidXml)
                             {
                                 aggregateRss.Add(xmlString);
                             }
-                            else
-                            {
-                                NotifySubscribers(null, "Rss not valid in OPML for - " + outline.Outline.XmlUrl, RssSeverityType.Warning);
-                            }
+                        }
+
+                        if (!validator.IsValidXml)
+                        {
+                            NotifySubscribers(null, "Rss not valid in OPML for - " + outline.Outline.XmlUrl, RssSeverityType.Warning);
                         }
                     }
                 }
@@ -200,7 +203,7 @@ namespace RssToolkit.Rss
         private void MergeRss(string title)
         {
             string emptyXml = string.Format(
-                   System.Globalization.CultureInfo.InvariantCulture,
+                   CultureInfo.InvariantCulture,
                    @"<?xml version=""1.0"" encoding=""utf-8""?><rss version=""2.0""><channel>{0}</channel></rss>",
                    string.IsNullOrEmpty(title) ? string.Empty : "<title>" + title + "</title>");
 
@@ -214,22 +217,25 @@ namespace RssToolkit.Rss
                     XmlDocument rssDocument = new XmlDocument();
                     XmlNode channelNode = xmlDocument.SelectSingleNode("rss/channel");
 
-                    if ((!string.IsNullOrEmpty(inputXml)) && channelNode != null)
+                    if (!string.IsNullOrEmpty(inputXml) && channelNode != null)
                     {
                         rssDocument.LoadXml(inputXml);
                         nodes = rssDocument.SelectNodes("rss/channel/item");
                         SortedList<string, XmlElement> nodesList = new SortedList<string, XmlElement>();
                         foreach (XmlElement node in nodes)
                         {
-                            DateTime date;
+                            DateTime date = DateTime.MinValue;
                             try
                             {
-                                ////date = NewsComponents.Utils.DateTimeExt.Parse(node.GetElementsByTagName("pubDate")[0].InnerText);
-                                date = RssXmlHelper.Parse(node.GetElementsByTagName("pubDate")[0].InnerText);
+                                XmlNodeList pubDates = node.GetElementsByTagName("pubDate");
+                                if (pubDates.Count > 0)
+                                {
+                                    XmlNode pubDate = pubDates[0];
+                                    date = RssXmlHelper.Parse(pubDate.InnerText);
+                                }
                             }
                             catch (Exception ex)
                             {
-                                date = DateTime.MinValue;
                                 NotifySubscribers(ex, ex.Message, RssSeverityType.Warning);
                             }
 
