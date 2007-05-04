@@ -1,6 +1,6 @@
 /*=======================================================================
   Copyright (C) Microsoft Corporation.  All rights reserved.
- 
+
   THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
   KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
   IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
@@ -51,7 +51,7 @@ namespace RssToolkit.Rss
                 }
 
                 userName = "." + userName; // not to confuse the encrypted string with real auth ticket for real user
-                DateTime ticketDate = DateTime.Now.AddDays(-100); // already expried
+                DateTime ticketDate = DateTime.Now.AddDays(-100); // already expired
 
                 FormsAuthenticationTicket t = new FormsAuthenticationTicket(
                     2, userName, ticketDate, ticketDate.AddDays(2), false, channelName, "/");
@@ -64,15 +64,14 @@ namespace RssToolkit.Rss
 
         internal static void ParseChannelQueryString(HttpRequest request, out string channelName, out string userName, out DocumentType outputType)
         {
-            string ticket = request.QueryString["t"];
-
-            if (!string.IsNullOrEmpty(request.QueryString["outputtype"]))
+            string outputTypeQs = request.QueryString["outputtype"];
+            if (!string.IsNullOrEmpty(outputTypeQs))
             {
                 try
                 {
-                    outputType = (DocumentType)Enum.Parse(typeof(DocumentType), request.QueryString["outputtype"], true);
+                    outputType = (DocumentType)Enum.Parse(typeof(DocumentType), outputTypeQs, true);
                 }
-                catch
+                catch (ArgumentException)
                 {
                     outputType = DocumentType.Rss;
                 }
@@ -82,6 +81,7 @@ namespace RssToolkit.Rss
                 outputType = DocumentType.Rss;
             }
 
+            string ticket = request.QueryString["t"];
             if (string.IsNullOrEmpty(ticket)) 
             {
                 userName = string.Empty;
