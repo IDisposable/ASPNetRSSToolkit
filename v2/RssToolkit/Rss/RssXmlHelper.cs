@@ -11,6 +11,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
+using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -49,7 +50,7 @@ namespace RssToolkit.Rss
 
                 if (context != null)
                 {
-                    string query = null;
+                    string query = string.Empty;
                     int iquery = link.IndexOf('?');
 
                     if (iquery >= 0)
@@ -59,12 +60,7 @@ namespace RssToolkit.Rss
                     }
 
                     link = VirtualPathUtility.ToAbsolute(link);
-                    link = new Uri(context.Request.Url, link).ToString();
-
-                    if (iquery >= 0)
-                    {
-                        link += query;
-                    }
+                    link = new Uri(context.Request.Url, link).ToString() + query;
                 }
             }
 
@@ -85,10 +81,10 @@ namespace RssToolkit.Rss
                 throw new ArgumentException(string.Format(Resources.RssToolkit.Culture, Resources.RssToolkit.ArgmentException, "xml"));
             }
 
-            XmlSerializer xmlSerializer = new XmlSerializer(typeof(T));
-            using (StringReader strngReader = new StringReader(xml))
+            XmlSerializer serializer = new XmlSerializer(typeof(T));
+            using (StringReader reader = new StringReader(xml))
             {
-                return (T)xmlSerializer.Deserialize(strngReader);
+                return (T)serializer.Deserialize(reader);
             }
         }
 
@@ -105,16 +101,12 @@ namespace RssToolkit.Rss
                 throw new ArgumentNullException("rssDocument");
             }
 
-            string xml = string.Empty;
-
-            using (StringWriter output = new StringWriter(new StringBuilder(), System.Globalization.CultureInfo.InvariantCulture))
+            using (StringWriter output = new StringWriter(new StringBuilder(), CultureInfo.InvariantCulture))
             {
-                XmlSerializer xmlSerializer = new XmlSerializer(typeof(T));
-                xmlSerializer.Serialize(output, rssDocument);
-                xml = output.ToString();
+                XmlSerializer serializer = new XmlSerializer(typeof(T));
+                serializer.Serialize(output, rssDocument);
+                return output.ToString();
             }
-
-            return xml;
         }
 
         /// <summary>
@@ -178,7 +170,7 @@ namespace RssToolkit.Rss
             }
 
             string rssXml = string.Empty;
-            
+
             while (reader.Read())
             {
                 if (reader.NodeType == XmlNodeType.Element)
@@ -224,7 +216,7 @@ namespace RssToolkit.Rss
             }
 
             DataSet dataset = new DataSet();
-            dataset.Locale = System.Globalization.CultureInfo.InvariantCulture;
+            dataset.Locale = CultureInfo.InvariantCulture;
             using (StringReader stringReader = new StringReader(xml))
             {
                 dataset.ReadXml(stringReader);
@@ -240,7 +232,7 @@ namespace RssToolkit.Rss
         /// <typeparam name="T">RssDocumentBase</typeparam>
         /// <returns>Generic of RssDocumentBase</returns>
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1004:GenericMethodsShouldProvideTypeParameter"), System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1054:UriParametersShouldNotBeStrings", MessageId = "0#")]
-        public static T LoadRssFromOpmlUrl<T>(string url) where T: RssDocumentBase
+        public static T LoadRssFromOpmlUrl<T>(string url) where T : RssDocumentBase
         {
             if (string.IsNullOrEmpty(url))
             {
@@ -267,7 +259,7 @@ namespace RssToolkit.Rss
         /// </summary>
         /// <param name="dateTime">Date Time to parse</param>
         /// <returns>DateTime instance</returns>
-        /// <exception cref="FormatException">On format errors parsing the datetime</exception>
+        /// <exception cref="FormatException">On format errors parsing the DateTime</exception>
         public static DateTime Parse(string dateTime)
         {
             Regex rfc2822 = new Regex(@"\s*(?:(?:Mon|Tue|Wed|Thu|Fri|Sat|Sun)\s*,\s*)?(\d{1,2})\s+(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s+(\d{2,})\s+(\d{2})\s*:\s*(\d{2})\s*(?::\s*(\d{2}))?\s+([+\-]\d{4}|UT|GMT|EST|EDT|CST|CDT|MST|MDT|PST|PDT|[A-IK-Z])", RegexOptions.Compiled);
@@ -288,29 +280,63 @@ namespace RssToolkit.Rss
             {
                 try
                 {
-                    int dd = Int32.Parse(m.Groups[1].Value, System.Globalization.CultureInfo.InvariantCulture);
+                    int dd = Int32.Parse(m.Groups[1].Value, CultureInfo.InvariantCulture);
                     int mth = months.IndexOf(m.Groups[2].Value);
-                    int yy = Int32.Parse(m.Groups[3].Value, System.Globalization.CultureInfo.InvariantCulture);
+                    int yy = Int32.Parse(m.Groups[3].Value, CultureInfo.InvariantCulture);
                     //// following year completion is compliant with RFC 2822.
                     yy = (yy < 50 ? 2000 + yy : (yy < 1000 ? 1900 + yy : yy));
-                    int hh = Int32.Parse(m.Groups[4].Value, System.Globalization.CultureInfo.InvariantCulture);
-                    int mm = Int32.Parse(m.Groups[5].Value, System.Globalization.CultureInfo.InvariantCulture);
-                    int ss = Int32.Parse(m.Groups[6].Value, System.Globalization.CultureInfo.InvariantCulture);
+                    int hh = Int32.Parse(m.Groups[4].Value, CultureInfo.InvariantCulture);
+                    int mm = Int32.Parse(m.Groups[5].Value, CultureInfo.InvariantCulture);
+                    int ss = Int32.Parse(m.Groups[6].Value, CultureInfo.InvariantCulture);
                     string zone = m.Groups[7].Value;
 
                     DateTime xd = new DateTime(yy, mth, dd, hh, mm, ss);
                     return xd.AddHours(RFCTimeZoneToGMTBias(zone) * -1);
                 }
-                catch (Exception e)
+                catch (FormatException e)
                 {
                     throw new FormatException(string.Format(Resources.RssToolkit.Culture, Resources.RssToolkit.RssText, e.GetType().Name), e);
                 }
             }
             else
             {
-                // fallback, if regex does not match:
-                return DateTime.Parse(dateTime, System.Globalization.CultureInfo.InvariantCulture);
+                // fall-back, if regex does not match:
+                return DateTime.Parse(dateTime, CultureInfo.InvariantCulture);
             }
+        }
+
+        /// <summary>
+        /// Converts a DateTime to a valid RFC 2822/822 string
+        /// </summary>
+        /// <param name="dt">The DateTime to convert, recognizes Zulu/GMT</param>
+        /// <returns>Returns the local time in RFC format with the time offset properly appended</returns>
+        public static string ToRfc822(DateTime dt)
+        {
+            string timeZone;
+
+            if (dt.Kind == DateTimeKind.Utc)
+            {
+                timeZone = "Z";
+            }
+            else
+            {
+                TimeSpan offset = TimeZone.CurrentTimeZone.GetUtcOffset(dt);
+
+                if (offset.Ticks < 0)
+                {
+                    offset = -offset;
+                    timeZone = "-";
+                }
+                else
+                {
+                    timeZone = "+";
+                }
+
+                timeZone += offset.Hours.ToString(CultureInfo.InvariantCulture).PadLeft(2, '0');
+                timeZone += offset.Minutes.ToString(CultureInfo.InvariantCulture).PadLeft(2, '0');
+            }
+
+            return dt.ToString("ddd, dd MMM yyyy HH:mm:ss " + timeZone, CultureInfo.InvariantCulture);
         }
 
         /// <summary>
@@ -321,6 +347,7 @@ namespace RssToolkit.Rss
         /// <returns></returns>
         public static string DoXslTransform(string inputXml, Stream xslResource)
         {
+            ///TODO Make the culture an argument
             using (StringWriter outputWriter = new StringWriter(System.Threading.Thread.CurrentThread.CurrentUICulture))
             {
                 using (StringReader stringReader = new StringReader(inputXml))
@@ -336,7 +363,6 @@ namespace RssToolkit.Rss
 
                 return outputWriter.ToString();
             }
-
         }
 
         /// <summary>
@@ -349,13 +375,14 @@ namespace RssToolkit.Rss
         /// <returns>RFCTimeZoneToGMTBias</returns>
         private static double RFCTimeZoneToGMTBias(string zone)
         {
-            Dictionary<string, int> timeZones;
+            Dictionary<string, int> timeZones = null;
 
-            if (HttpContext.Current != null && HttpContext.Current.Cache[TimeZoneCacheKey] != null)
+            if (HttpContext.Current != null)
             {
-                timeZones = (Dictionary<string, int>)HttpContext.Current.Cache[TimeZoneCacheKey];
+                timeZones = HttpContext.Current.Cache[TimeZoneCacheKey] as Dictionary<string, int>;
             }
-            else
+
+            if (timeZones == null)
             {
                 timeZones = new Dictionary<string, int>();
                 timeZones.Add("GMT", 0);
@@ -393,31 +420,29 @@ namespace RssToolkit.Rss
                 timeZones.Add("W", 10 * 60);
                 timeZones.Add("X", 3 * 60);
                 timeZones.Add("Y", 12 * 60);
-                
+
                 if (HttpContext.Current != null)
                 {
                     HttpContext.Current.Cache.Insert(TimeZoneCacheKey, timeZones);
                 }
             }
-                        
-            string s;
 
             if (zone.IndexOfAny(new char[] { '+', '-' }) == 0)  // +hhmm format
             {
-                int fact = (zone.Substring(0, 1) == "-" ? -1 : 1);
-                s = zone.Substring(1).TrimEnd();
-                double hh = Math.Min(23, Int32.Parse(s.Substring(0, 2), System.Globalization.CultureInfo.InvariantCulture));
-                double mm = Math.Min(59, Int32.Parse(s.Substring(2, 2), System.Globalization.CultureInfo.InvariantCulture)) / 60;
-                return fact * (hh + mm);
+                int sign = (zone[0] == '-' ? -1 : 1);
+                string s = zone.Substring(1).TrimEnd();
+                int hh = Math.Min(23, Int32.Parse(s.Substring(0, 2), CultureInfo.InvariantCulture));
+                int mm = Math.Min(59, Int32.Parse(s.Substring(2, 2), CultureInfo.InvariantCulture));
+                return sign * (hh + (mm / 60.0));
             }
             else
             { // named format
-                s = zone.ToUpper(System.Globalization.CultureInfo.InvariantCulture).Trim();
+                string s = zone.ToUpper(CultureInfo.InvariantCulture).Trim();
                 foreach (string key in timeZones.Keys)
                 {
                     if (key.Equals(s))
                     {
-                        return timeZones[key] / 60;
+                        return timeZones[key] / 60.0;
                     }
                 }
             }

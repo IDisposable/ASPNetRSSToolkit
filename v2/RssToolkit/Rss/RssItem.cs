@@ -1,6 +1,6 @@
 /*=======================================================================
   Copyright (C) Microsoft Corporation.  All rights reserved.
- 
+
   THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
   KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
   IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
@@ -28,7 +28,6 @@ namespace RssToolkit.Rss
         private RssGuid _guid;
         private string _link;
         private string _pubDate;
-        private System.DateTime _pubDateParsed;
         private string _title;
         private RssSource _source;
 
@@ -173,7 +172,7 @@ namespace RssToolkit.Rss
             set
             {
                 _pubDate = value;
-            }
+            }   
         }
 
         /// <summary>
@@ -190,7 +189,7 @@ namespace RssToolkit.Rss
 
             set
             {
-                _pubDateParsed = value;
+                _pubDate = RssXmlHelper.ToRfc822(value);
             }
         }
 
