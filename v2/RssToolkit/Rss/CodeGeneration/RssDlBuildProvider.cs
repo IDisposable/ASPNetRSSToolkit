@@ -1,6 +1,6 @@
 /*=======================================================================
   Copyright (C) Microsoft Corporation.  All rights reserved.
- 
+
   THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
   KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
   IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
@@ -42,7 +42,6 @@ namespace RssToolkit.Rss.CodeGeneration
 
             // load as XML
             XmlDocument doc = new XmlDocument();
-
             using (Stream s = OpenStream(VirtualPath))
             {
                 doc.Load(s);
@@ -68,39 +67,31 @@ namespace RssToolkit.Rss.CodeGeneration
                 {
                     throw new InvalidDataException(
                         string.Format(
-                        CultureInfo.InvariantCulture,
-                        "Unexpected node '{0}' -- expected root 'rss' node",
-                        root.Name));
+                            CultureInfo.InvariantCulture,
+                            "Unexpected node '{0}' -- expected root 'rss' node",
+                            root.Name));
                 }
 
-                string name = string.Empty;
                 string file = string.Empty;
                 string url = string.Empty;
-                string ns = string.Empty;
+                string classNamePrefix = string.Empty;
+                string namespaceName = string.Empty;
 
                 foreach (XmlAttribute attr in n.Attributes)
                 {
                     switch (attr.Name)
                     {
                         case "name":
-                            name = attr.Value;
+                            classNamePrefix = attr.Value;
                             break;
                         case "url":
-                            if (!string.IsNullOrEmpty(file))
-                            {
-                                throw new InvalidDataException("Only one of 'file' and 'url' can be specified");
-                            }
                             url = attr.Value;
                             break;
                         case "file":
-                            if (!string.IsNullOrEmpty(url))
-                            {
-                                throw new InvalidDataException("Only one of 'file' and 'url' can be specified");
-                            }
                             file = VirtualPathUtility.Combine(VirtualPathUtility.GetDirectory(VirtualPath), attr.Value);
                             break;
                         case "namespace":
-                            ns = attr.Value;
+                            namespaceName = attr.Value;
                             break;
                         default:
                             throw new InvalidDataException(
@@ -108,7 +99,7 @@ namespace RssToolkit.Rss.CodeGeneration
                     }
                 }
 
-                if (string.IsNullOrEmpty(name))
+                if (string.IsNullOrEmpty(classNamePrefix))
                 {
                     throw new InvalidDataException("Missing 'name' attribute");
                 }
@@ -118,24 +109,35 @@ namespace RssToolkit.Rss.CodeGeneration
                     throw new InvalidDataException("Missing 'url' or 'file' attribute - one must be specified");
                 }
 
-                RssDocument rss = null;
+                if (!string.IsNullOrEmpty(url) && !string.IsNullOrEmpty(file))
+                {
+                    throw new InvalidDataException("Only one of 'file' and 'url' can be specified");
+                }
+
+                // compile channel
+                CodeCompileUnit ccu = new CodeCompileUnit();
 
                 if (!string.IsNullOrEmpty(url))
                 {
                     // load RssDocument
-                    rss = RssDocument.Load(new System.Uri(url));
+                    using (Stream feedStream = DownloadManager.GetFeed(url))
+                    {
+                        using (XmlTextReader reader = new XmlTextReader(feedStream))
+                        {
+                            string codeString = RssXmlHelper.ConvertToRssXml(reader);
+                            RssCodeGenerator.GenerateCodeDomTree(codeString, url, namespaceName, classNamePrefix, ccu, true);
+                        }
+                    }
                 }
                 else
                 {
                     using (XmlTextReader reader = new XmlTextReader(file))
                     {
-                        rss = RssDocument.Load(reader);
+                        string codeString = RssXmlHelper.ConvertToRssXml(reader);
+                        RssCodeGenerator.GenerateCodeDomTree(codeString, url, namespaceName, classNamePrefix, ccu, true);
                     }
                 }
 
-                // compile channel
-                CodeCompileUnit ccu = new CodeCompileUnit();
-                RssCodeGenerator.GenerateCodeDomTree(rss, ns, name, ccu, false);
                 assemblyBuilder.AddCodeCompileUnit(this, ccu);
             }
         }

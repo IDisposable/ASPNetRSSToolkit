@@ -17,13 +17,19 @@ namespace RssToolkit.Rss.CodeGeneration
     /// </summary>
     internal class ClassInfo
     {
-        private string _name;
+        private readonly string _name;
         private bool _isText;
         private string _namespace;
-        private Dictionary<string, PropertyInfo> _properties = new Dictionary<string, PropertyInfo>();
+        private readonly Dictionary<string, PropertyInfo> _properties;
+
+        public ClassInfo(string name)
+        {
+            _name = name;
+            _properties = new Dictionary<string, PropertyInfo>();
+        }
 
         /// <summary>
-        /// Gets or sets the name.
+        /// Gets the name.
         /// </summary>
         /// <value>The name.</value>
         public string Name
@@ -31,11 +37,6 @@ namespace RssToolkit.Rss.CodeGeneration
             get 
             { 
                 return _name; 
-            }
-
-            set 
-            { 
-                _name = value; 
             }
         }
 

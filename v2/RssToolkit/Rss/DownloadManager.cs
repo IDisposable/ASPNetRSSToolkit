@@ -1,6 +1,6 @@
 /*=======================================================================
   Copyright (C) Microsoft Corporation.  All rights reserved.
- 
+
   THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
   KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
   IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
@@ -11,6 +11,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Configuration;
+using System.Globalization;
 using System.IO;
 using System.Net;
 using System.Text;
@@ -28,9 +29,9 @@ namespace RssToolkit.Rss
     public class DownloadManager
     {
         private static DownloadManager _downloadManager = new DownloadManager();
-        private Dictionary<string, CacheInfo> _cache;
-        private int _defaultTtlMinutes;
-        private string _directoryOnDisk;
+        private readonly Dictionary<string, CacheInfo> _cache;
+        private readonly int _defaultTtlMinutes;
+        private readonly string _directoryOnDisk;
 
         private DownloadManager()
         {
@@ -39,7 +40,7 @@ namespace RssToolkit.Rss
 
             // get default ttl value from config
             _defaultTtlMinutes = GetTtlFromString(ConfigurationManager.AppSettings["defaultRssTtl"], 1);
-            
+
             // prepare disk directory
             _directoryOnDisk = PrepareTempDir();
         }
@@ -63,49 +64,46 @@ namespace RssToolkit.Rss
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
         private static string PrepareTempDir()
         {
-            string tempDir = null;
-
             try
             {
-                string d = ConfigurationManager.AppSettings["rssTempDir"];
-                
-                if (string.IsNullOrEmpty(d))
+                string tempDir = ConfigurationManager.AppSettings["rssTempDir"];
+
+                if (string.IsNullOrEmpty(tempDir))
                 {
                     if (HostingEnvironment.IsHosted)
                     {
-                        d = HttpRuntime.CodegenDir;
+                        tempDir = HttpRuntime.CodegenDir;
                     }
                     else
                     {
-                        d = Environment.GetEnvironmentVariable("TEMP");
+                        tempDir = Environment.GetEnvironmentVariable("TEMP");
 
-                        if (string.IsNullOrEmpty(d))
+                        if (string.IsNullOrEmpty(tempDir))
                         {
-                            d = Environment.GetEnvironmentVariable("TMP");
+                            tempDir = Environment.GetEnvironmentVariable("TMP");
 
-                            if (string.IsNullOrEmpty(d))
+                            if (string.IsNullOrEmpty(tempDir))
                             {
-                                d = Directory.GetCurrentDirectory();
+                                tempDir = Directory.GetCurrentDirectory();
                             }
                         }
                     }
 
-                    d = Path.Combine(d, "rss");
+                    tempDir = Path.Combine(tempDir, "rss");
                 }
 
-                if (!Directory.Exists(d))
+                if (!Directory.Exists(tempDir))
                 {
-                    Directory.CreateDirectory(d);
+                    Directory.CreateDirectory(tempDir);
                 }
 
-                tempDir = d;
+                return tempDir;
             }
             catch
             {
                 // don't cache on disk if can't do it
+                return null;
             }
-
-            return tempDir;
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
@@ -115,15 +113,28 @@ namespace RssToolkit.Rss
             {
                 Uri uri = new Uri(url);
                 return string.Format(
-                    System.Globalization.CultureInfo.InvariantCulture,
+                    CultureInfo.InvariantCulture,
                     "{0}_{1:x8}",
                     uri.Host.Replace('.', '_'),
-                    uri.AbsolutePath.GetHashCode());
+                    StableHash(uri.AbsolutePath));
             }
-            catch
+            catch (UriFormatException)
             {
                 return "rss";
             }
+        }
+
+        // returns a hash that is always the same (unlink String.GetHashCode() which varies)
+        public static int StableHash(string value)
+        {
+            int hash = 0x61E04917; // slurped from .Net runtime internals...
+            foreach (char c in value)
+            {
+                hash <<= 5;
+                hash ^= c;
+            }
+
+            return hash;
         }
 
         private static int GetTtlFromString(string ttlString, int defaultTtlMinutes)
@@ -153,13 +164,14 @@ namespace RssToolkit.Rss
                 {
                     if (DateTime.UtcNow > dom.Expiry)
                     {
+                        TryDeleteFile(dom.FeedFilename);
                         _cache.Remove(url);
                         dom = null;
                     }
                 }
             }
 
-            if (dom == null || dom.Data != null)
+            if (!CacheReadable(dom))
             {
                 dom = DownLoadFeedDom(url);
 
@@ -172,44 +184,36 @@ namespace RssToolkit.Rss
             return dom;
         }
 
+        private static bool CacheReadable(CacheInfo dom)
+        {
+            return (dom != null && dom.Data != null && dom.Data.CanRead);
+        }
+
         private CacheInfo DownLoadFeedDom(string url)
         {
             //// look for disk cache first
             CacheInfo dom = TryLoadFromDisk(url);
 
-            if (dom != null && dom.Data != null)
+            if (CacheReadable(dom))
             {
                 return dom;
-            }
-            else
-            {
-                dom = new CacheInfo();
             }
 
             string ttlString = null;
             XmlDocument doc = new XmlDocument();
             doc.Load(url);
-            
-            MemoryStream documentStream = new MemoryStream();
-            doc.Save(documentStream);
-            documentStream.Flush();
-            documentStream.Position = 0;
-            dom.Data = documentStream;
 
             if (doc.SelectSingleNode("/rss/channel/ttl") != null)
             {
                 ttlString = doc.SelectSingleNode("/rss/channel/ttl").Value;
             }
 
-            // set expiry
+            //// compute expiry
             int ttlMinutes = GetTtlFromString(ttlString, _defaultTtlMinutes);
             DateTime utcExpiry = DateTime.UtcNow.AddMinutes(ttlMinutes);
-            dom.Expiry = utcExpiry;
 
             //// save to disk
-            TrySaveToDisk(doc, url, utcExpiry);
-
-            return dom;
+            return TrySaveToDisk(doc, url, utcExpiry);
         }
 
         [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
@@ -219,6 +223,8 @@ namespace RssToolkit.Rss
             {
                 return null; // no place to cache
             }
+
+            CacheInfo found = null;
 
             // look for all files matching the prefix
             // looking for the one matching url that is not expired
@@ -244,11 +250,11 @@ namespace RssToolkit.Rss
 
                     if (comment != null)
                     {
-                        string c = comment.Value;
+                        string c = comment.Value ?? string.Empty;
                         int i = c.IndexOf('@');
                         long expiry;
 
-                        if (long.TryParse(c.Substring(0, i), out expiry))
+                        if (i >= 0 && long.TryParse(c.Substring(0, i), out expiry))
                         {
                             utcExpiryFromFeedFile = DateTime.FromBinary(expiry);
                             urlFromFeedFile = c.Substring(i + 1);
@@ -256,7 +262,7 @@ namespace RssToolkit.Rss
                         }
                     }
                 }
-                catch
+                catch (XmlException)
                 {
                     // error processing one file shouldn't stop processing other files
                 }
@@ -264,15 +270,7 @@ namespace RssToolkit.Rss
                 // remove invalid or expired file
                 if (!isFeedFileValid || utcExpiryFromFeedFile < DateTime.UtcNow)
                 {
-                    try
-                    {
-                        File.Delete(feedFilename);
-                    }
-                    catch
-                    {
-                        // error processing one file shouldn't stop processing other files
-                    }
-
+                    TryDeleteFile(feedFilename);
                     // try next file
                     continue;
                 }
@@ -280,84 +278,120 @@ namespace RssToolkit.Rss
                 // match url
                 if (urlFromFeedFile == url)
                 {
-                    // found a good one - create DOM and set expiry (as found on disk)
-                    CacheInfo dom = new CacheInfo();
-                    MemoryStream documentStream = new MemoryStream();
-                    feedDoc.Save(documentStream);
-                    documentStream.Flush();
-                    documentStream.Position = 0;
-                    dom.Data = documentStream;
-                    dom.Expiry = utcExpiryFromFeedFile;
-                    return dom;
+                    // keep the one that expires last
+                    if (found == null || found.Expiry < utcExpiryFromFeedFile)
+                    {
+                        // if we have a previously found older expiration, kill it...
+                        if (found != null)
+                        {
+                            found.Dispose();
+                            TryDeleteFile(found.FeedFilename);
+                        }
+
+                        // create DOM and set expiry (as found on disk)
+                        found = new CacheInfo(feedDoc, utcExpiryFromFeedFile, feedFilename);
+                    }
                 }
             }
 
-            // not found
-            return null;
+            // return best fit
+            return found;
         }
 
-        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-        private void TrySaveToDisk(XmlDocument doc, string url, DateTime utcExpiry)
+        private void TryDeleteFile(string feedFilename)
         {
-            if (_directoryOnDisk == null)
-            {
+            if (string.IsNullOrEmpty(feedFilename))
                 return;
-            }
-
-            doc.InsertBefore(doc.CreateComment(string.Format(System.Globalization.CultureInfo.InvariantCulture, "{0}@{1}", utcExpiry.ToBinary(), url)), doc.DocumentElement);
-
-            string fileName = string.Format(
-                System.Globalization.CultureInfo.InvariantCulture,
-                "{0}_{1:x8}.feed",
-                GetTempFileNamePrefixFromUrl(url),
-                Guid.NewGuid().ToString().GetHashCode());
 
             try
             {
-                doc.Save(Path.Combine(_directoryOnDisk, fileName));
+                File.Delete(feedFilename);
             }
             catch
             {
-                // can't save to disk - not a problem
+                // error deleting a file shouldn't stop processing other files
             }
+        }
+
+        [System.Diagnostics.CodeAnalysis.SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
+        private CacheInfo TrySaveToDisk(XmlDocument doc, string url, DateTime utcExpiry)
+        {
+            string fileName = null;
+
+            if (_directoryOnDisk != null)
+            {
+                XmlComment comment = doc.CreateComment(string.Format(CultureInfo.InvariantCulture, "{0}@{1}", utcExpiry.ToBinary(), url));
+                doc.InsertBefore(comment, doc.DocumentElement);
+
+                fileName = string.Format(
+                    CultureInfo.InvariantCulture,
+                    "{0}_{1:x8}.feed",
+                    GetTempFileNamePrefixFromUrl(url),
+                    Guid.NewGuid().GetHashCode());
+
+                try
+                {
+                    doc.Save(Path.Combine(_directoryOnDisk, fileName));
+                }
+                catch
+                {
+                    // can't save to disk - not a problem   
+                    fileName = null;
+                }
+            }
+
+            return new CacheInfo(doc, utcExpiry, fileName);
         }
 
         private class CacheInfo : IDisposable
         {
-            private Stream data;
-            private DateTime expiry;
+            private readonly Stream data;
+            private readonly DateTime expiry;
+            private readonly string filename;
+
+            public CacheInfo(XmlDocument doc, DateTime utcExpiry, string feedFilename)
+            {
+                MemoryStream documentStream = new MemoryStream();
+                doc.Save(documentStream);
+                documentStream.Flush();
+                documentStream.Position = 0;
+                this.data = documentStream;
+                this.expiry = utcExpiry;
+                this.filename = feedFilename;
+            }
 
             /// <summary>
-            /// Gets or sets the expiry.
+            /// Gets the expiration time in UTC.
             /// </summary>
             /// <value>The expiry.</value>
             public DateTime Expiry
             {
-                get 
-                { 
-                    return expiry; 
-                }
-
-                set 
-                { 
-                    expiry = value; 
+                get
+                {
+                    return expiry;
                 }
             }
 
             /// <summary>
-            /// Gets or sets the data.
+            /// Gets the data stream
             /// </summary>
             /// <value>The data.</value>
             public Stream Data
             {
-                get 
-                { 
-                    return data; 
+                get
+                {
+                    return data;
                 }
+            }
 
-                set 
-                { 
-                    data = value; 
+            /// <summary>
+            /// Gets the filename 
+            /// </summary>
+            public string FeedFilename
+            {
+                get
+                {
+                    return filename;
                 }
             }
 

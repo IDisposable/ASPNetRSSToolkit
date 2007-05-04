@@ -1,6 +1,6 @@
 /*=======================================================================
   Copyright (C) Microsoft Corporation.  All rights reserved.
- 
+
   THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
   KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
   IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
@@ -24,7 +24,6 @@ namespace RssToolkit.Rss.CodeGeneration
     public sealed class RssCodeGenerator
     {
         #region Constants
-        
         /// <summary>
         /// Rss Constant
         /// </summary>
@@ -58,7 +57,6 @@ namespace RssToolkit.Rss.CodeGeneration
         #endregion
 
         #region Public methods
-
         /// <summary>
         /// Generates the code.
         /// </summary>
@@ -311,7 +309,7 @@ namespace RssToolkit.Rss.CodeGeneration
                             property.IsAttribute ? XmlNodeType.Attribute : XmlNodeType.Element,
                             (classDictionary.ContainsKey(property.Name) && classDictionary[property.Name].Properties.Count > 0) ? new CodeTypeReference(propertyName) : new CodeTypeReference("System.String"),
                             itemType,
-                            property.Occurances > 1 ? true : false,
+                            property.Occurrences > 1 ? true : false,
                             (classDictionary.ContainsKey(property.Name) ? classDictionary[property.Name].Namespace : string.Empty));
                     }
 
@@ -336,11 +334,9 @@ namespace RssToolkit.Rss.CodeGeneration
             // add the generated namespace to the code compile unit
             outputCodeCompileUnit.Namespaces.Add(generatedNamespace);
         }
-
         #endregion
 
         #region Private Methods
-
         /// <summary>
         /// Codes the name of the name from RSS.
         /// </summary>
@@ -507,6 +503,13 @@ namespace RssToolkit.Rss.CodeGeneration
             property.Attributes |= MemberAttributes.Public;
             property.Name = propertyName;
             property.Type = propertyType;
+
+            // prevent warnings for RssDocumentBase properties
+            if (propertyName.Equals("Version", StringComparison.Ordinal) 
+                || propertyName.Equals("Channel", StringComparison.Ordinal))
+            {
+                property.Attributes |= MemberAttributes.New;
+            }
 
             CodeAttributeDeclaration cad;
             if (nodeType != XmlNodeType.Text)
@@ -736,7 +739,6 @@ namespace RssToolkit.Rss.CodeGeneration
 
             channelType.Members.Add(m);
         }
-
         #endregion
     }
 }

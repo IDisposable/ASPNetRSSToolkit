@@ -604,230 +604,6 @@ namespace RssToolkitUnitTest
     }
     [System.Diagnostics.DebuggerStepThrough()]
     [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TestTools.UnitTestGeneration", "1.0.0.0")]
-    internal class RssToolkit_Rss_CodeGeneration_ClassInfoAccessor : BaseAccessor
-    {
-
-        protected static Microsoft.VisualStudio.TestTools.UnitTesting.PrivateType m_privateType = new Microsoft.VisualStudio.TestTools.UnitTesting.PrivateType("RssToolkit", "RssToolkit.Rss.CodeGeneration.ClassInfo");
-
-        internal RssToolkit_Rss_CodeGeneration_ClassInfoAccessor(object target)
-            :
-                base(target, m_privateType)
-        {
-        }
-
-        internal string name
-        {
-            get
-            {
-                string ret = ((string)(m_privateObject.GetField("name")));
-                return ret;
-            }
-            set
-            {
-                m_privateObject.SetField("name", value);
-            }
-        }
-
-        internal bool isText
-        {
-            get
-            {
-                bool ret = ((bool)(m_privateObject.GetField("isText")));
-                return ret;
-            }
-            set
-            {
-                m_privateObject.SetField("isText", value);
-            }
-        }
-
-        internal string namespaceName
-        {
-            get
-            {
-                string ret = ((string)(m_privateObject.GetField("namespaceName")));
-                return ret;
-            }
-            set
-            {
-                m_privateObject.SetField("namespaceName", value);
-            }
-        }
-
-        internal string Name
-        {
-            get
-            {
-                string ret = ((string)(m_privateObject.GetProperty("Name")));
-                return ret;
-            }
-            set
-            {
-                m_privateObject.SetProperty("Name", value);
-            }
-        }
-
-        internal bool IsText
-        {
-            get
-            {
-                bool ret = ((bool)(m_privateObject.GetProperty("IsText")));
-                return ret;
-            }
-            set
-            {
-                m_privateObject.SetProperty("IsText", value);
-            }
-        }
-
-        internal string NamespaceName
-        {
-            get
-            {
-                string ret = ((string)(m_privateObject.GetProperty("NamespaceName")));
-                return ret;
-            }
-            set
-            {
-                m_privateObject.SetProperty("NamespaceName", value);
-            }
-        }
-
-        internal static object CreatePrivate()
-        {
-            Microsoft.VisualStudio.TestTools.UnitTesting.PrivateObject priv_obj = new Microsoft.VisualStudio.TestTools.UnitTesting.PrivateObject("RssToolkit", "RssToolkit.Rss.CodeGeneration.ClassInfo", new object[0]);
-            return priv_obj.Target;
-        }
-    }
-
-    [System.Diagnostics.DebuggerStepThrough()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TestTools.UnitTestGeneration", "1.0.0.0")]
-    internal class RssToolkit_Rss_CodeGeneration_RssCodeTreeGenerator_ParentInfoAccessor : BaseAccessor
-    {
-
-        protected static Microsoft.VisualStudio.TestTools.UnitTesting.PrivateType m_privateType = new Microsoft.VisualStudio.TestTools.UnitTesting.PrivateType("RssToolkit", "RssToolkit.Rss.CodeGeneration.RssCodeTreeGenerator+ParentInfo");
-
-        internal RssToolkit_Rss_CodeGeneration_RssCodeTreeGenerator_ParentInfoAccessor(object target)
-            :
-                base(target, m_privateType)
-        {
-        }
-
-        internal System.Collections.Generic.Dictionary<string, int> ChildCount
-        {
-            get
-            {
-                System.Collections.Generic.Dictionary<string, int> ret = ((System.Collections.Generic.Dictionary<string, int>)(m_privateObject.GetProperty("ChildCount")));
-                return ret;
-            }
-        }
-
-        internal static object CreatePrivate()
-        {
-            object[] args = new object[0];
-            Microsoft.VisualStudio.TestTools.UnitTesting.PrivateObject priv_obj = new Microsoft.VisualStudio.TestTools.UnitTesting.PrivateObject("RssToolkit", "RssToolkit.Rss.CodeGeneration.RssCodeTreeGenerator+ParentInfo", new System.Type[0], args);
-            return priv_obj.Target;
-        }
-    }
-    [System.Diagnostics.DebuggerStepThrough()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TestTools.UnitTestGeneration", "1.0.0.0")]
-    internal class RssToolkit_Rss_CodeGeneration_PropertyInfoAccessor : BaseAccessor
-    {
-
-        protected static Microsoft.VisualStudio.TestTools.UnitTesting.PrivateType m_privateType = new Microsoft.VisualStudio.TestTools.UnitTesting.PrivateType("RssToolkit", "RssToolkit.Rss.CodeGeneration.PropertyInfo");
-
-        internal RssToolkit_Rss_CodeGeneration_PropertyInfoAccessor(object target)
-            :
-                base(target, m_privateType)
-        {
-        }
-
-        internal string name
-        {
-            get
-            {
-                string ret = ((string)(m_privateObject.GetField("name")));
-                return ret;
-            }
-            set
-            {
-                m_privateObject.SetField("name", value);
-            }
-        }
-
-        internal int occurances
-        {
-            get
-            {
-                int ret = ((int)(m_privateObject.GetField("occurances")));
-                return ret;
-            }
-            set
-            {
-                m_privateObject.SetField("occurances", value);
-            }
-        }
-
-        internal bool isattribute
-        {
-            get
-            {
-                bool ret = ((bool)(m_privateObject.GetField("isattribute")));
-                return ret;
-            }
-            set
-            {
-                m_privateObject.SetField("isattribute", value);
-            }
-        }
-
-        internal string Name
-        {
-            get
-            {
-                string ret = ((string)(m_privateObject.GetProperty("Name")));
-                return ret;
-            }
-            set
-            {
-                m_privateObject.SetProperty("Name", value);
-            }
-        }
-
-        internal int Occurances
-        {
-            get
-            {
-                int ret = ((int)(m_privateObject.GetProperty("Occurances")));
-                return ret;
-            }
-            set
-            {
-                m_privateObject.SetProperty("Occurances", value);
-            }
-        }
-
-        internal bool IsAttribute
-        {
-            get
-            {
-                bool ret = ((bool)(m_privateObject.GetProperty("IsAttribute")));
-                return ret;
-            }
-            set
-            {
-                m_privateObject.SetProperty("IsAttribute", value);
-            }
-        }
-
-        internal static object CreatePrivate()
-        {
-            Microsoft.VisualStudio.TestTools.UnitTesting.PrivateObject priv_obj = new Microsoft.VisualStudio.TestTools.UnitTesting.PrivateObject("RssToolkit", "RssToolkit.Rss.CodeGeneration.PropertyInfo", new object[0]);
-            return priv_obj.Target;
-        }
-    }
-    [System.Diagnostics.DebuggerStepThrough()]
-    [System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TestTools.UnitTestGeneration", "1.0.0.0")]
     internal class RssToolkit_Rss_CodeGeneration_RssCodeGeneratorAccessor : BaseAccessor
     {
 
@@ -1092,7 +868,153 @@ internal class BaseAccessor {
         return this.Target.GetHashCode();
     }
 }
-
-
-
+[System.Diagnostics.DebuggerStepThrough()]
+[System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TestTools.UnitTestGeneration", "1.0.0.0")]
+internal class RssToolkit_Rss_CodeGeneration_ClassInfoAccessor : BaseAccessor {
+    
+    protected static Microsoft.VisualStudio.TestTools.UnitTesting.PrivateType m_privateType = new Microsoft.VisualStudio.TestTools.UnitTesting.PrivateType("RssToolkit", "RssToolkit.Rss.CodeGeneration.ClassInfo");
+    
+    internal RssToolkit_Rss_CodeGeneration_ClassInfoAccessor(object target) : 
+            base(target, m_privateType) {
+    }
+    
+    internal string _name {
+        get {
+            string ret = ((string)(m_privateObject.GetField("_name")));
+            return ret;
+        }
+        set {
+            m_privateObject.SetField("_name", value);
+        }
+    }
+    
+    internal bool _isText {
+        get {
+            bool ret = ((bool)(m_privateObject.GetField("_isText")));
+            return ret;
+        }
+        set {
+            m_privateObject.SetField("_isText", value);
+        }
+    }
+    
+    internal string _namespace {
+        get {
+            string ret = ((string)(m_privateObject.GetField("_namespace")));
+            return ret;
+        }
+        set {
+            m_privateObject.SetField("_namespace", value);
+        }
+    }
+    
+    internal string Name {
+        get {
+            string ret = ((string)(m_privateObject.GetProperty("Name")));
+            return ret;
+        }
+    }
+    
+    internal bool IsText {
+        get {
+            bool ret = ((bool)(m_privateObject.GetProperty("IsText")));
+            return ret;
+        }
+        set {
+            m_privateObject.SetProperty("IsText", value);
+        }
+    }
+    
+    internal string Namespace {
+        get {
+            string ret = ((string)(m_privateObject.GetProperty("Namespace")));
+            return ret;
+        }
+        set {
+            m_privateObject.SetProperty("Namespace", value);
+        }
+    }
+    
+    internal static object CreatePrivate(string name) {
+        object[] args = new object[] {
+                name};
+        Microsoft.VisualStudio.TestTools.UnitTesting.PrivateObject priv_obj = new Microsoft.VisualStudio.TestTools.UnitTesting.PrivateObject("RssToolkit", "RssToolkit.Rss.CodeGeneration.ClassInfo", new System.Type[] {
+                    typeof(string)}, args);
+        return priv_obj.Target;
+    }
+}
+[System.Diagnostics.DebuggerStepThrough()]
+[System.CodeDom.Compiler.GeneratedCodeAttribute("Microsoft.VisualStudio.TestTools.UnitTestGeneration", "1.0.0.0")]
+internal class RssToolkit_Rss_CodeGeneration_PropertyInfoAccessor : BaseAccessor {
+    
+    protected static Microsoft.VisualStudio.TestTools.UnitTesting.PrivateType m_privateType = new Microsoft.VisualStudio.TestTools.UnitTesting.PrivateType("RssToolkit", "RssToolkit.Rss.CodeGeneration.PropertyInfo");
+    
+    internal RssToolkit_Rss_CodeGeneration_PropertyInfoAccessor(object target) : 
+            base(target, m_privateType) {
+    }
+    
+    internal string _name {
+        get {
+            string ret = ((string)(m_privateObject.GetField("_name")));
+            return ret;
+        }
+        set {
+            m_privateObject.SetField("_name", value);
+        }
+    }
+    
+    internal bool _isAttribute {
+        get {
+            bool ret = ((bool)(m_privateObject.GetField("_isAttribute")));
+            return ret;
+        }
+        set {
+            m_privateObject.SetField("_isAttribute", value);
+        }
+    }
+    
+    internal int _occurrences {
+        get {
+            int ret = ((int)(m_privateObject.GetField("_occurrences")));
+            return ret;
+        }
+        set {
+            m_privateObject.SetField("_occurrences", value);
+        }
+    }
+    
+    internal string Name {
+        get {
+            string ret = ((string)(m_privateObject.GetProperty("Name")));
+            return ret;
+        }
+    }
+    
+    internal bool IsAttribute {
+        get {
+            bool ret = ((bool)(m_privateObject.GetProperty("IsAttribute")));
+            return ret;
+        }
+    }
+    
+    internal int Occurrences {
+        get {
+            int ret = ((int)(m_privateObject.GetProperty("Occurrences")));
+            return ret;
+        }
+        set {
+            m_privateObject.SetProperty("Occurrences", value);
+        }
+    }
+    
+    internal static object CreatePrivate(string name, bool isAttribute) {
+        object[] args = new object[] {
+                name,
+                isAttribute};
+        Microsoft.VisualStudio.TestTools.UnitTesting.PrivateObject priv_obj = new Microsoft.VisualStudio.TestTools.UnitTesting.PrivateObject("RssToolkit", "RssToolkit.Rss.CodeGeneration.PropertyInfo", new System.Type[] {
+                    typeof(string),
+                    typeof(bool)}, args);
+        return priv_obj.Target;
+    }
+}
 }

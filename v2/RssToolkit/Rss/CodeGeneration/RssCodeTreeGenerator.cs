@@ -1,6 +1,6 @@
 /*=======================================================================
   Copyright (C) Microsoft Corporation.  All rights reserved.
- 
+
   THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
   KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
   IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
@@ -20,8 +20,7 @@ namespace RssToolkit.Rss.CodeGeneration
     /// </summary>
     internal class RssCodeTreeGenerator
     {
-        private Stack<ParentInfo> stack = new Stack<ParentInfo>();
-        private XmlNamespaceManager nps;
+        private readonly Stack<ParentInfo> stack = new Stack<ParentInfo>();
 
         /// <summary>
         /// Converts to dictionary.
@@ -35,17 +34,20 @@ namespace RssToolkit.Rss.CodeGeneration
                 throw new ArgumentException(string.Format(Resources.RssToolkit.Culture, Resources.RssToolkit.ArgmentException, "xml"));
             }
 
-            Dictionary<string, ClassInfo> table = new Dictionary<string, ClassInfo>();
-            StringReader stringReader = new StringReader(xml);
-            XmlTextReader reader = new XmlTextReader(stringReader);
-            Parse(reader, table);
-            return table;
+            using (StringReader stringReader = new StringReader(xml))
+            using (XmlTextReader reader = new XmlTextReader(stringReader))
+            {
+                return Parse(reader);
+            }
         }
 
-        private void Parse(XmlTextReader reader, Dictionary<string, ClassInfo> table)
+        private Dictionary<string, ClassInfo> Parse(XmlTextReader reader)
         {
+            XmlNamespaceManager nps = new XmlNamespaceManager(reader.NameTable);
+            Dictionary<string, ClassInfo> table = new Dictionary<string, ClassInfo>();
             ParentInfo parent = null;
             string previousNode = null;
+
             while (reader.Read())
             {
                 if (reader.NodeType == XmlNodeType.Element ||
@@ -53,6 +55,7 @@ namespace RssToolkit.Rss.CodeGeneration
                 {
                     ////Got an element. This will be the name of a class.
                     string className = reader.LocalName;
+                    
                     if (className.Equals("rss", StringComparison.OrdinalIgnoreCase))
                     {
                         nps = new XmlNamespaceManager(reader.NameTable);
@@ -71,11 +74,11 @@ namespace RssToolkit.Rss.CodeGeneration
 
                     if (reader.IsStartElement() || reader.IsEmptyElement)
                     {
-                        ParseStartElements(reader, table, parent, className);
+                        ParseStartElements(reader, table, parent, nps, className);
                     }
                     else
                     {
-                        ParseEndElements(parent, table, className);
+                        ParseEndElements(table, className);
                     }
 
                     previousNode = className;
@@ -86,27 +89,30 @@ namespace RssToolkit.Rss.CodeGeneration
                     {
                         ClassInfo classInfo = table[previousNode];
                         classInfo.IsText = true;
-                    } 
+                    }
                 }
             }
+
+            return table;
         }
 
-        private void ParseStartElements(XmlTextReader reader, Dictionary<string, ClassInfo> table, ParentInfo parent, string className)
+        private void ParseStartElements(XmlTextReader reader, Dictionary<string, ClassInfo> table, ParentInfo parent, XmlNamespaceManager nps, string className)
         {
             if (stack.Count != 0)
             {
                 ////Get the parent
                 parent = stack.Peek();
+
                 ////Get the child element from inside the parent
                 if (parent.ChildCount.ContainsKey(className))
                 {
-                    ////increment the Occurance of the child element inside the parent
+                    ////increment the Occurrence of the child element inside the parent
                     int childCount = parent.ChildCount[className];
                     parent.ChildCount[className] = ++childCount;
                 }
                 else
                 {
-                    ////if child does not exist in the parent add it will Occurance = 1
+                    ////if child does not exist in the parent add it with Occurrence = 1
                     parent.ChildCount.Add(className, 1);
                 }
             }
@@ -118,99 +124,67 @@ namespace RssToolkit.Rss.CodeGeneration
                 stack.Push(new ParentInfo());
             }
 
-            if (!table.ContainsKey(className))
+            ClassInfo classInfo;
+
+            if (!table.TryGetValue(className, out classInfo))
             {
-                ////Create a ClassInfo everytime we hit an element and it is not already
+                ////Create a ClassInfo every time we hit an element and it is not already
                 ////contained in the global table.
-                ClassInfo classInfo = new ClassInfo();
-                classInfo.Name = className;
-
-                if (reader.LocalName != reader.Name)
-                {
-                    string lookupName = reader.Prefix == "xmlns" ? reader.LocalName : reader.Prefix;
-                    classInfo.Namespace = nps.LookupNamespace(lookupName);
-                }
-
-                ////Add all the attributes here....
-                for (int index = 0; index < reader.AttributeCount; index++)
-                {
-                    PropertyInfo p = new PropertyInfo();
-                    reader.MoveToAttribute(index);
-                    if (!reader.Name.StartsWith("xmlns"))
-                    {
-                        p.Name = reader.LocalName;
-                        p.IsAttribute = true;
-                        classInfo.Properties[p.Name] = p;
-                    }
-                }
-
+                classInfo = new ClassInfo(className);
                 table.Add(className, classInfo);
             }
-            else
-            {
-                ClassInfo classInfo = table[className];
-                if (reader.LocalName != reader.Name)
-                {
-                    string lookupName = reader.Prefix == "xmlns" ? reader.LocalName : reader.Prefix;
-                    classInfo.Namespace = nps.LookupNamespace(lookupName);
-                }
 
-                ////Add any new attributes that are not already defined in the classInfo....
-                for (int index = 0; index < reader.AttributeCount; index++)
+            if (reader.LocalName != reader.Name)
+            {
+                string lookupName = reader.Prefix == "xmlns" ? reader.LocalName : reader.Prefix;
+                classInfo.Namespace = nps.LookupNamespace(lookupName);
+            }
+
+            ////Add any new attributes that are not already defined in the classInfo....
+            for (int index = 0; index < reader.AttributeCount; index++)
+            {
+                reader.MoveToAttribute(index);
+                string localName = reader.LocalName;
+                if (!classInfo.Properties.ContainsKey(localName) && (!reader.Name.StartsWith("xmlns")))
                 {
-                    reader.MoveToAttribute(index);
-                    string localName = reader.LocalName;
-                    if (!classInfo.Properties.ContainsKey(localName) && (!reader.Name.StartsWith("xmlns")))
-                    {
-                        PropertyInfo propertyInfo = new PropertyInfo();
-                        propertyInfo.Name = localName;
-                        propertyInfo.IsAttribute = true;
-                        classInfo.Properties[propertyInfo.Name] = propertyInfo;
-                    }
+                    PropertyInfo propertyInfo = new PropertyInfo(localName, true);
+                    classInfo.Properties[propertyInfo.Name] = propertyInfo;
                 }
             }
         }
 
-        private void ParseEndElements(ParentInfo parent, Dictionary<string, ClassInfo> table, string className)
+        private void ParseEndElements(Dictionary<string, ClassInfo> table, string className)
         {
-            parent = stack.Pop();
+            ParentInfo parent = stack.Pop();
             ClassInfo classInfo = table[className];
             Dictionary<string, PropertyInfo> classMembers = classInfo.Properties;
-            foreach (string childName in parent.ChildCount.Keys)
+
+            foreach (KeyValuePair<string, int> child in parent.ChildCount)
             {
-                int childCount = parent.ChildCount[childName];
+                string childName = child.Key;
+                int childCount = child.Value;
                 int existingChildCount = 0;
+
                 if (classMembers.ContainsKey(childName))
                 {
-                    existingChildCount = classMembers[childName].Occurances;
+                    existingChildCount = classMembers[childName].Occurrences;
                 }
                 else
                 {
-                    PropertyInfo property = new PropertyInfo();
-                    property.Name = childName;
-                    property.Occurances = 0;
+                    PropertyInfo property = new PropertyInfo(childName, false);
                     classMembers[childName] = property;
                 }
 
                 if (childCount > existingChildCount)
                 {
-                    classMembers[childName].Occurances = childCount;
+                    classMembers[childName].Occurrences = childCount;
                 }
-            }
-
-            if (stack.Count != 0)
-            {
-                parent = stack.Peek();
-            }
-            else
-            {
-                parent = null;
             }
         }
 
         private class ParentInfo
         {
-            private Dictionary<string, int> _childCount = new Dictionary<string, int>();
+            private readonly Dictionary<string, int> _childCount = new Dictionary<string, int>();
 
             /// <summary>
             /// Initializes a new instance of the <see cref="ParentInfo"/> class.
@@ -225,9 +199,9 @@ namespace RssToolkit.Rss.CodeGeneration
             /// <value>The child count.</value>
             public Dictionary<string, int> ChildCount
             {
-                get 
-                { 
-                    return _childCount; 
+                get
+                {
+                    return _childCount;
                 }
             }
         }

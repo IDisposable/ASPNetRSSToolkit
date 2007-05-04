@@ -1,6 +1,6 @@
 /*=======================================================================
   Copyright (C) Microsoft Corporation.  All rights reserved.
- 
+
   THIS CODE AND INFORMATION ARE PROVIDED "AS IS" WITHOUT WARRANTY OF ANY
   KIND, EITHER EXPRESSED OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
   IMPLIED WARRANTIES OF MERCHANTABILITY AND/OR FITNESS FOR A
@@ -21,7 +21,7 @@ namespace RssToolkit.Rss.CodeGeneration
 {
     /// <summary>
     /// build provided for .rss file - channel definition in app_code
-    /// generates strognly-typed channel type
+    /// generates strongly-typed channel type
     /// </summary>
     [BuildProviderAppliesTo(BuildProviderAppliesTo.Code)]
     public sealed class RssBuildProvider : BuildProvider
@@ -38,21 +38,20 @@ namespace RssToolkit.Rss.CodeGeneration
             }
 
             // get name and namespace from the filename
-            string fname = VirtualPathUtility.GetFileName(VirtualPath);
-            fname = fname.Substring(0, fname.LastIndexOf('.')); // no extension
-            int i = fname.LastIndexOf('.');
+            string ns = string.Empty;
+            string name = VirtualPathUtility.GetFileName(VirtualPath);
+            int i = name.LastIndexOf('.');
 
-            string name, ns;
+            if (i > 0)
+            {
+                name = name.Substring(0, i); // discard extension
+                i = name.LastIndexOf('.'); // and split into namespace and class
 
-            if (i < 0)
-            {
-                name = fname;
-                ns = string.Empty;
-            }
-            else
-            {
-                name = fname.Substring(i + 1);
-                ns = fname.Substring(0, i);
+                if (i > 0)
+                {
+                    name = name.Substring(i + 1);
+                    ns = name.Substring(0, i);
+                }
             }
 
             // load as XML
