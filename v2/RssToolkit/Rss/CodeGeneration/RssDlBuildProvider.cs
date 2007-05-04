@@ -11,6 +11,7 @@ using System;
 using System.CodeDom;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Web;
 using System.Web.Compilation;
@@ -47,12 +48,12 @@ namespace RssToolkit.Rss.CodeGeneration
                 doc.Load(s);
             }
 
-            // valide root rssdl node
+            // validate root rssdl node
             XmlNode root = doc.DocumentElement;
 
             if (root.Name != "rssdl")
             {
-                throw new InvalidDataException(string.Format(System.Globalization.CultureInfo.InvariantCulture, "Unexpected root node '{0}' -- expected root 'rssdl' node", root.Name));
+                throw new InvalidDataException(string.Format(CultureInfo.InvariantCulture, "Unexpected root node '{0}' -- expected root 'rssdl' node", root.Name));
             }
 
             // iterate through rss nodes
@@ -67,7 +68,7 @@ namespace RssToolkit.Rss.CodeGeneration
                 {
                     throw new InvalidDataException(
                         string.Format(
-                        System.Globalization.CultureInfo.InvariantCulture,
+                        CultureInfo.InvariantCulture,
                         "Unexpected node '{0}' -- expected root 'rss' node",
                         root.Name));
                 }
@@ -89,7 +90,6 @@ namespace RssToolkit.Rss.CodeGeneration
                             {
                                 throw new InvalidDataException("Only one of 'file' and 'url' can be specified");
                             }
-
                             url = attr.Value;
                             break;
                         case "file":
@@ -97,7 +97,6 @@ namespace RssToolkit.Rss.CodeGeneration
                             {
                                 throw new InvalidDataException("Only one of 'file' and 'url' can be specified");
                             }
-
                             file = VirtualPathUtility.Combine(VirtualPathUtility.GetDirectory(VirtualPath), attr.Value);
                             break;
                         case "namespace":
@@ -105,7 +104,7 @@ namespace RssToolkit.Rss.CodeGeneration
                             break;
                         default:
                             throw new InvalidDataException(
-                                string.Format(System.Globalization.CultureInfo.InvariantCulture, "Unexpected attribute '{0}'", attr.Name));
+                                string.Format(CultureInfo.InvariantCulture, "Unexpected attribute '{0}'", attr.Name));
                     }
                 }
 
