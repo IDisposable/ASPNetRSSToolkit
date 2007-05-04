@@ -283,7 +283,7 @@ namespace RssToolkitUnitTest
         {
             Assert.IsTrue(code.Length > 0);
             Assert.IsTrue(code.Contains("public class TestRss : RssToolkit.Rss.RssDocumentBase"));
-            Assert.IsTrue(code.Contains("public TestChannel Channel"));
+            Assert.IsTrue(code.Contains("public new TestChannel Channel"));
             Assert.IsTrue(code.Contains("public static TestRss Load(System.Uri url)"));
             Assert.IsTrue(code.Contains("public class TestChannel"));
             Assert.IsTrue(code.Contains("public class TestHttpHandlerBase : RssToolkit.Rss.RssHttpHandlerBase<TestRss>"));
