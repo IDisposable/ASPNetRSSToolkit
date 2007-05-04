@@ -9,7 +9,7 @@
     <script language="c#" runat="server">
         void Page_Load(object sender, EventArgs e)
         {
-            YoutubeRss rss = YoutubeRss.Load();
+            YouTubeRss rss = YouTubeRss.Load();
             DataList1.DataSource = rss.Channel.Items;
             DataList1.DataBind();
         }
