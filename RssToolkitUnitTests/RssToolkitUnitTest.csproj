@@ -1,0 +1,90 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>8.0.50727</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{30858E38-87C1-47C2-9B19-09553C80BDA9}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>FrameworkUnitTest</RootNamespace>
+    <AssemblyName>FrameworkUnitTest</AssemblyName>
+    <WarningLevel>4</WarningLevel>
+    <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>.\bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugSymbols>false</DebugSymbols>
+    <Optimize>true</Optimize>
+    <OutputPath>.\bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.VisualStudio.QualityTools.UnitTestFramework, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\WINNT\assembly\GAC_MSIL\Microsoft.VisualStudio.QualityTools.UnitTestFramework\8.0.0.0__b03f5f7f11d50a3a\Microsoft.VisualStudio.QualityTools.UnitTestFramework.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.QualityTools.WebTestFramework, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL" />
+    <Reference Include="System" />
+    <Reference Include="System.configuration" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Web.Extensions, Version=1.0.61025.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Opml\OpmlBodyTest.cs" />
+    <Compile Include="Opml\OpmlDocumentTest.cs" />
+    <Compile Include="Opml\OpmlHeadTest.cs" />
+    <Compile Include="Opml\OpmlOutlineTest.cs" />
+    <Compile Include="Opml\OutlineInfoTest.cs" />
+    <Compile Include="Rss\CodeGeneration\RssItemTest.cs" />
+    <Compile Include="Rss\CodeGeneration\PropertyInfoTest.cs" />
+    <Compile Include="Rss\CodeGeneration\RssCodeGeneratorTest.cs" />
+    <Compile Include="Rss\DownloadManagerTest.cs" />
+    <Compile Include="Rss\RssAggregationEventArgsTest.cs" />
+    <Compile Include="Rss\RssAggregatorTest.cs" />
+    <Compile Include="Rss\RssCategoryTest.cs" />
+    <Compile Include="Rss\RssChannelTest.cs" />
+    <Compile Include="Rss\RssCloudTest.cs" />
+    <Compile Include="Rss\RssDocumentTest.cs" />
+    <Compile Include="Rss\RssEnclosureTest.cs" />
+    <Compile Include="Rss\RssGuidTest.cs" />
+    <Compile Include="Rss\RssImageTest.cs" />
+    <Compile Include="Rss\RssSkipDaysTest.cs" />
+    <Compile Include="Rss\RssSkipHoursTest.cs" />
+    <Compile Include="Rss\RssSourceTest.cs" />
+    <Compile Include="Rss\RssTextInputTest.cs" />
+    <Compile Include="Rss\RssXmlHelperTest.cs" />
+    <Compile Include="Rss\RssXmlSchemaValidatorTest.cs" />
+    <Compile Include="Utility\RssUtility.cs" />
+    <Compile Include="VSCodeGenAccessors.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\RssToolkit\RssToolkit.csproj">
+      <Project>{D20EF1B8-0AA6-44D4-9DCB-8C5C406AAD2D}</Project>
+      <Name>RssToolkit</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSHARP.Targets" />
+  <PropertyGroup>
+    <PreBuildEvent>
+    </PreBuildEvent>
+  </PropertyGroup>
+</Project>
